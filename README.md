@@ -2,7 +2,7 @@
 
 > Signature AI QA project — golden-set evaluation for an LLM / RAG system  
 > **Owner:** Nilima Satapathy  
-> **Status:** M1–M4 complete. Persist runs in M5.
+> **Status:** M1–M5 complete. Dashboard in M6.
 
 ## What this will become
 
@@ -23,7 +23,7 @@ C:\Users\admin\Code\llm-eval-dashboard
 | **M2** | Target app client | **Done** |
 | **M3** | First metrics green in Pytest | **Done** |
 | **M4** | 40+ cases + second metric | **Done** |
-| M5 | Latency/cost + run store | Pending |
+| **M5** | Latency/cost + run store | **Done** |
 | M6 | Streamlit dashboard | Pending |
 | M7 | Red-team subset | Pending |
 | M8 | CI + recruiter README polish | Pending |
@@ -110,10 +110,21 @@ set TARGET_BACKEND=golden
 pytest tests/ -v
 ```
 
+## M5 — run eval and store results
+
+```bash
+set TARGET_BACKEND=golden
+python scripts/run_eval.py
+# → data/eval_runs.sqlite3
+# → reports/run_<id>.csv
+```
+
+Stores per-case scores, latency, tokens/cost (when available), and suite pass rate / p95 latency.
+
 ## Spec source
 
 `AI-Career-Plan/04-projects/project-04-llm-eval-dashboard/SPEC.md`
 
 ## Next
 
-**M5:** Persist evaluation runs (scores, latency, cost) for trend history.
+**M6:** Streamlit dashboard on top of stored runs.

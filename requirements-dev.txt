@@ -1,5 +1,7 @@
-# Optional / local-only extras
+# Optional / local-only extras + CI tests
 -r requirements.txt
+
+pytest>=8.0.0
 
 # LLM-as-judge (opt-in: RUN_DEEPEVAL=1)
 deepeval>=1.0.0

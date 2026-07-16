@@ -1,6 +1,5 @@
-# Runtime + offline eval (CI-friendly; no paid APIs)
+# Runtime (Streamlit Cloud + local dashboard)
 requests>=2.31.0
 python-dotenv>=1.0.0
-pytest>=8.0.0
 streamlit>=1.28.0
 pandas>=2.0.0

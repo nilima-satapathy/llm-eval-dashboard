@@ -1,5 +1,6 @@
-# Runtime (Streamlit Cloud + local dashboard)
+# Runtime (Streamlit Cloud + local dashboard + quality gate)
 requests>=2.31.0
 python-dotenv>=1.0.0
 streamlit>=1.28.0
 pandas>=2.0.0
+PyYAML>=6.0.0

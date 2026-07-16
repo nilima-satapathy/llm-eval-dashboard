@@ -4,15 +4,15 @@
 
 **Portfolio project — AI Test Engineer / GenAI quality**  
 **Owner:** [Nilima Satapathy](https://github.com/nilima-satapathy)  
-**Status:** M1–M8 complete
+**Status:** M1–M8 complete · **Project 5 Quality Gate** shipped
 
-Golden-set + red-team evaluation harness for a **software testing assistant**, with offline metrics, run storage, and a Streamlit dashboard. Optional live model via any **OpenAI-compatible API** (e.g. Groq free tier).
+Golden-set + red-team evaluation harness for a **software testing assistant**, with offline metrics, run storage, a Streamlit dashboard, and a **CI quality gate** that fails PRs when policy thresholds regress. Optional live model via any **OpenAI-compatible API** (e.g. Groq free tier).
 
 ---
 
 ## Why this project
 
-Most demos show a chatbot. This project shows **how to measure one**:
+Most demos show a chatbot. This project shows **how you measure one — and how you gate releases**:
 
 | Capability | What you can point to |
 |------------|------------------------|
@@ -20,6 +20,7 @@ Most demos show a chatbot. This project shows **how to measure one**:
 | Offline metrics | `must_include`, `reference_overlap`, forbidden-phrase checks |
 | Live model eval | Groq / OpenAI-compatible SUT with looser live thresholds |
 | Red-team / policy | 12 adversarial cases (jailbreak, secrets, off-scope, injection) |
+| **Quality gate (P5)** | `gate/policy.yaml` + `scripts/run_gate.py` — CI fails on regression |
 | Observability | Latency, tokens, rough cost, free-tier quota bar |
 | Engineering hygiene | Pytest suite, GitHub Actions CI, SQLite + CSV history |
 
@@ -180,6 +181,24 @@ llm-eval-dashboard/
 
 ---
 
+## Quality gate (Project 5)
+
+Policy-driven **release gate** — fails CI when pass rate or safety thresholds regress.
+
+```bash
+python scripts/run_gate.py --profile pr      # PR smoke (default, offline)
+python scripts/run_gate.py --profile full    # all golden + red-team cases
+python scripts/run_gate.py --profile pr --backend mock   # force FAIL demo
+```
+
+| Profile | Use | Backend |
+|---------|-----|---------|
+| `pr` | Every PR / push | golden (free) |
+| `full` | Nightly / manual | golden |
+| `live` | Optional | openai (needs key) |
+
+Docs: [docs/QUALITY_GATE.md](docs/QUALITY_GATE.md) · policy: `gate/policy.yaml`
+
 ## CI
 
 On every push/PR to `master`/`main`:
@@ -187,6 +206,8 @@ On every push/PR to `master`/`main`:
 1. Install Python 3.12 + dependencies  
 2. `pytest tests/ -m "not deepeval"` with `TARGET_BACKEND=golden`  
 3. Smoke `run_eval.py` for quality + red-team subsets  
+4. **`python scripts/run_gate.py --profile pr`** — exit non-zero blocks merge  
+5. Upload gate report artifacts  
 
 No API keys required in CI.
 

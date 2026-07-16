@@ -70,10 +70,16 @@ python -c "import json; json.load(open('golden_dataset/qa_pairs.json')); print('
 - No Streamlit  
 - No API keys  
 
+## Local path (not OneDrive)
+
+```
+C:\Users\admin\Code\llm-eval-dashboard
+```
+
 ## Spec source
 
-Local career plan:  
-`AI-Career-Plan/04-projects/project-04-llm-eval-dashboard/SPEC.md`
+Career plan (may still live under OneDrive Code):  
+`...\AI-Career-Plan\04-projects\project-04-llm-eval-dashboard\SPEC.md`
 
 ## Next
 

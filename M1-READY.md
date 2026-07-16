@@ -4,7 +4,7 @@
 |-------|--------|
 | **Date** | 2026-07-16 |
 | **Status** | **Complete** |
-| **Repo** | `llm-eval-dashboard` (local) |
+| **Repo** | `C:\Users\admin\Code\llm-eval-dashboard` (local disk, not OneDrive) |
 
 ## Delivered
 

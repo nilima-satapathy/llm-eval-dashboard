@@ -5,3 +5,8 @@ python-dotenv>=1.0.0
 # M3 — metrics
 pytest>=8.0.0
 deepeval>=1.0.0
+
+# M6 — dashboard
+streamlit>=1.28.0
+pandas>=2.0.0
+

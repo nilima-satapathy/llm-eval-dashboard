@@ -2,7 +2,7 @@
 
 > Signature AI QA project — golden-set evaluation for an LLM / RAG system  
 > **Owner:** Nilima Satapathy  
-> **Status:** M1–M5 complete. Dashboard in M6.
+> **Status:** M1–M6 complete. Red-team in M7.
 
 ## What this will become
 
@@ -24,7 +24,7 @@ C:\Users\admin\Code\llm-eval-dashboard
 | **M3** | First metrics green in Pytest | **Done** |
 | **M4** | 40+ cases + second metric | **Done** |
 | **M5** | Latency/cost + run store | **Done** |
-| M6 | Streamlit dashboard | Pending |
+| **M6** | Streamlit dashboard | **Done** |
 | M7 | Red-team subset | Pending |
 | M8 | CI + recruiter README polish | Pending |
 
@@ -121,10 +121,20 @@ python scripts/run_eval.py
 
 Stores per-case scores, latency, tokens/cost (when available), and suite pass rate / p95 latency.
 
+## M6 — dashboard
+
+```bash
+set TARGET_BACKEND=golden
+python scripts/run_eval.py          # seed DB if empty
+streamlit run dashboard/app.py      # http://localhost:8501
+```
+
+Shows pass rate, failures, latency/cost trends, and a run picker with per-case scores. Sidebar can trigger a new eval run.
+
 ## Spec source
 
 `AI-Career-Plan/04-projects/project-04-llm-eval-dashboard/SPEC.md`
 
 ## Next
 
-**M6:** Streamlit dashboard on top of stored runs.
+**M7:** Red-team cases + tests.

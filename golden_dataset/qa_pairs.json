@@ -1,0 +1,226 @@
+{
+  "version": "1.0",
+  "domain": "software_testing_assistant",
+  "description": "Seed golden set (M1): 10 high-quality Q&A cases for a software testing assistant. Expand to 40+ in M4. No metrics wired yet.",
+  "cases": [
+    {
+      "id": "qa-001",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "easy",
+      "question": "What is the difference between verification and validation in software testing?",
+      "reference_answer": "Verification checks whether the product was built correctly against specifications (reviews, static analysis, unit tests against design). Validation checks whether the right product was built for user needs (system tests, UAT, acceptance criteria). In short: verification = are we building it right; validation = are we building the right thing.",
+      "must_include": [
+        "verification",
+        "validation",
+        "specifications",
+        "user needs"
+      ],
+      "must_not_include": [
+        "verification and validation are the same",
+        "only manual testing is validation"
+      ],
+      "context": null,
+      "tags": ["fundamentals", "V&V", "interview"],
+      "source": "Core ISTQB-style concept; common interview question",
+      "notes": "Expect clear contrast, not a long textbook dump."
+    },
+    {
+      "id": "qa-002",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "easy",
+      "question": "What is a flaky test, and why is it harmful in CI?",
+      "reference_answer": "A flaky test sometimes passes and sometimes fails without intentional product changes. Common causes include timing/race conditions, shared mutable state, external dependencies, and non-deterministic data. Flakes erode trust in CI: teams ignore red builds, hide real regressions, and waste time on re-runs instead of fixing root causes.",
+      "must_include": [
+        "non-deterministic",
+        "CI",
+        "false failure",
+        "trust"
+      ],
+      "must_not_include": [
+        "flaky means the feature is always broken",
+        "ignore flaky tests forever"
+      ],
+      "context": null,
+      "tags": ["CI", "reliability", "automation"],
+      "source": "Daily CI pain; SDET interviews",
+      "notes": null
+    },
+    {
+      "id": "qa-003",
+      "domain": "software_testing_assistant",
+      "category": "strategy",
+      "difficulty": "medium",
+      "question": "How would you prioritize test cases when you have limited time before a release?",
+      "reference_answer": "Prioritize by risk and user impact: critical user journeys, high-severity areas, recent code changes, and historically buggy modules. Prefer smoke and high-value regression over exhaustive edge coverage. Document what was deferred and why so residual risk is visible to stakeholders. Time-box exploratory testing on the riskiest new behaviour.",
+      "must_include": [
+        "risk",
+        "critical journeys",
+        "recent changes",
+        "smoke"
+      ],
+      "must_not_include": [
+        "test everything equally",
+        "skip testing if time is short"
+      ],
+      "context": null,
+      "tags": ["test-strategy", "release", "risk-based"],
+      "source": "Release readiness ownership (Microsoft/HCL style scenarios)",
+      "notes": "Good answers sound like a QA lead, not a checklist bot."
+    },
+    {
+      "id": "qa-004",
+      "domain": "software_testing_assistant",
+      "category": "automation",
+      "difficulty": "medium",
+      "question": "What is the Page Object Model in UI automation, and what problem does it solve?",
+      "reference_answer": "Page Object Model (POM) represents each page or component as a class that encapsulates locators and user actions. Tests call high-level methods instead of raw selectors. This reduces duplication, isolates UI churn to one place, and makes tests more readable and maintainable as the product UI changes.",
+      "must_include": [
+        "locators",
+        "encapsulation",
+        "maintainability",
+        "tests call methods"
+      ],
+      "must_not_include": [
+        "POM means recording clicks only",
+        "one giant class for the whole app is best"
+      ],
+      "context": null,
+      "tags": ["Playwright", "Selenium", "POM", "UI"],
+      "source": "Project 2 portfolio talking point",
+      "notes": null
+    },
+    {
+      "id": "qa-005",
+      "domain": "software_testing_assistant",
+      "category": "api",
+      "difficulty": "medium",
+      "question": "What should an API automated test typically assert beyond HTTP status 200?",
+      "reference_answer": "Assert response body structure and values (schema or contract), important business fields, error codes and messages on negative paths, headers when relevant (content-type, auth), and idempotency/side effects for write operations. Also cover unauthorized and invalid-input cases. Status 200 alone can hide wrong payloads.",
+      "must_include": [
+        "schema",
+        "body",
+        "negative",
+        "error"
+      ],
+      "must_not_include": [
+        "status code is enough",
+        "never test error paths"
+      ],
+      "context": null,
+      "tags": ["API", "Pytest", "contract", "negative-testing"],
+      "source": "Project 1 API automation portfolio",
+      "notes": null
+    },
+    {
+      "id": "qa-006",
+      "domain": "software_testing_assistant",
+      "category": "process",
+      "difficulty": "medium",
+      "question": "What is the difference between severity and priority of a defect?",
+      "reference_answer": "Severity describes the technical impact of the bug on the system (crash vs cosmetic). Priority describes business urgency of the fix (fix now vs later). A low-severity typo on the checkout button can be high priority; a severe crash in a rare admin tool may be lower priority. QA usually proposes severity; product/engineering often sets priority.",
+      "must_include": [
+        "severity",
+        "priority",
+        "impact",
+        "business urgency"
+      ],
+      "must_not_include": [
+        "severity and priority are always identical"
+      ],
+      "context": null,
+      "tags": ["defects", "process", "interview"],
+      "source": "Classic QA process question",
+      "notes": null
+    },
+    {
+      "id": "qa-007",
+      "domain": "software_testing_assistant",
+      "category": "strategy",
+      "difficulty": "hard",
+      "question": "How is testing an LLM-powered feature different from classical regression testing?",
+      "reference_answer": "LLM features are non-deterministic: the same prompt can yield different wording, so exact string asserts are brittle. Failures include hallucinations, unsafe content, weak retrieval, and silent quality drift after prompt or model changes. Evaluation uses golden sets, graded metrics (e.g. faithfulness, relevancy), sampling, and thresholds rather than only pass/fail UI steps. Cost and latency become quality attributes. Human review still matters for edge cases.",
+      "must_include": [
+        "non-deterministic",
+        "hallucination",
+        "golden set",
+        "metrics"
+      ],
+      "must_not_include": [
+        "LLM testing is identical to unit testing strings",
+        "only manual vibe checks are needed"
+      ],
+      "context": null,
+      "tags": ["LLM", "AI-QA", "evaluation", "career"],
+      "source": "Bridge to Project 4 interview narrative",
+      "notes": "Core differentiator case for AI QA roles."
+    },
+    {
+      "id": "qa-008",
+      "domain": "software_testing_assistant",
+      "category": "tooling",
+      "difficulty": "easy",
+      "question": "Why run automated tests in CI (for example GitHub Actions) on every pull request?",
+      "reference_answer": "CI runs the same suite in a clean environment on every change, catching regressions early before merge. It enforces a shared quality gate, reduces “works on my machine” issues, and provides artifacts (logs, HTML reports, traces) for debugging. For teams, CI makes quality visible and repeatable rather than relying on ad-hoc local runs.",
+      "must_include": [
+        "every change",
+        "regression",
+        "quality gate",
+        "consistent environment"
+      ],
+      "must_not_include": [
+        "CI replaces all exploratory testing",
+        "only run tests once a year"
+      ],
+      "context": null,
+      "tags": ["CI", "GitHub Actions", "process"],
+      "source": "Portfolio projects with GH Actions",
+      "notes": null
+    },
+    {
+      "id": "qa-009",
+      "domain": "software_testing_assistant",
+      "category": "automation",
+      "difficulty": "hard",
+      "question": "When should you not automate a test case?",
+      "reference_answer": "Avoid automating one-off checks, highly unstable UI with no ROI, pure visual aesthetics better suited to design review, or cases that change every sprint with no stable oracle. Prefer automation for repetitive, high-risk, stable flows. Exploratory and usability testing stay largely manual. Automating everything can create a brittle suite that costs more to maintain than it saves.",
+      "must_include": [
+        "ROI",
+        "stable",
+        "exploratory",
+        "maintenance cost"
+      ],
+      "must_not_include": [
+        "automate every test always",
+        "never automate anything"
+      ],
+      "context": null,
+      "tags": ["strategy", "automation", "ROI"],
+      "source": "Senior tester judgment; interview favorite",
+      "notes": null
+    },
+    {
+      "id": "qa-010",
+      "domain": "software_testing_assistant",
+      "category": "api",
+      "difficulty": "hard",
+      "question": "How would you design negative API tests for a login endpoint?",
+      "reference_answer": "Cover missing fields, wrong password, unknown user, empty body, malformed JSON, SQL/script injection strings, locked or disabled accounts if applicable, and rate-limit behaviour if specified. Assert correct HTTP status (401/400/403/429 as designed), stable error codes/messages, no stack traces or sensitive data in responses, and that no session token is issued on failure. Keep tests data-driven for maintainability.",
+      "must_include": [
+        "invalid credentials",
+        "malformed input",
+        "status code",
+        "no token on failure"
+      ],
+      "must_not_include": [
+        "only test happy path login",
+        "expect 200 for wrong password"
+      ],
+      "context": null,
+      "tags": ["API", "negative", "security-basics", "login"],
+      "source": "API automation + security-minded QA",
+      "notes": "Aligns with Project 1 negative cases mindset."
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nilima-satapathy/llm-eval-dashboard/golden_dataset/schema.json",
+  "title": "LLM Eval Golden Dataset",
+  "type": "object",
+  "required": ["version", "domain", "description", "cases"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Dataset schema/content version"
+    },
+    "domain": {
+      "type": "string",
+      "const": "software_testing_assistant"
+    },
+    "description": {
+      "type": "string"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/case" }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "required": [
+        "id",
+        "domain",
+        "category",
+        "difficulty",
+        "question",
+        "reference_answer",
+        "must_include",
+        "must_not_include",
+        "tags",
+        "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^qa-[0-9]{3}$"
+        },
+        "domain": {
+          "type": "string",
+          "const": "software_testing_assistant"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "concepts",
+            "strategy",
+            "automation",
+            "api",
+            "process",
+            "tooling"
+          ]
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["easy", "medium", "hard"]
+        },
+        "question": {
+          "type": "string",
+          "minLength": 10
+        },
+        "reference_answer": {
+          "type": "string",
+          "minLength": 40
+        },
+        "must_include": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2
+        },
+        "must_not_include": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "context": {
+          "type": ["string", "null"]
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "source": {
+          "type": "string"
+        },
+        "notes": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}

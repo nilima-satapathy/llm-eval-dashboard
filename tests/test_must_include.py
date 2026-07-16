@@ -1,21 +1,25 @@
 """
-M3 offline gate: must_include coverage against the target answer.
+Metric 1: must_include coverage against the target answer.
 
-Runs without API keys when TARGET_BACKEND=golden (default in conftest).
+Offline when TARGET_BACKEND=golden (default in conftest).
+M4 runs the full golden set (40+ cases).
 """
 
 from __future__ import annotations
 
 import pytest
 
-from src.dataset import get_case
+from src.dataset import get_case, load_cases
 from src.metrics_basic import must_include_score, must_not_include_violations
 
-# Pass if at least 70% of required concepts appear in the answer
 THRESHOLD = 0.7
 
 
-@pytest.mark.parametrize("case_id", ["qa-001", "qa-002", "qa-004", "qa-007"])
+def _all_case_ids() -> list[str]:
+    return [c["id"] for c in load_cases()]
+
+
+@pytest.mark.parametrize("case_id", _all_case_ids())
 def test_must_include_coverage(case_id: str, target):
     case = get_case(case_id)
     result = target.complete(case["question"])
@@ -35,3 +39,7 @@ def test_latency_is_recorded(target):
     assert result.latency_ms >= 0
     assert result.answer
     assert result.backend in ("golden", "mock", "openai")
+
+
+def test_dataset_size_m4():
+    assert len(load_cases()) >= 40

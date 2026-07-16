@@ -23,8 +23,13 @@ def golden_cases():
 
 @pytest.fixture(scope="session")
 def seed_case_ids():
-    """Small subset for fast M3 runs (expand in M4)."""
+    """Legacy small subset; M4 tests parametrize the full set."""
     return ["qa-001", "qa-002", "qa-004", "qa-007"]
+
+
+@pytest.fixture(scope="session")
+def all_case_ids(golden_cases):
+    return [c["id"] for c in golden_cases]
 
 
 @pytest.fixture(scope="session")

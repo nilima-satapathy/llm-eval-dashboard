@@ -1,7 +1,7 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "domain": "software_testing_assistant",
-  "description": "Seed golden set (M1): 10 high-quality Q&A cases for a software testing assistant. Expand to 40+ in M4. No metrics wired yet.",
+  "description": "Golden set for software testing assistant: 42 cases (M4 expansion; M1 started with 10 seeds).",
   "cases": [
     {
       "id": "qa-001",
@@ -21,7 +21,11 @@
         "only manual testing is validation"
       ],
       "context": null,
-      "tags": ["fundamentals", "V&V", "interview"],
+      "tags": [
+        "fundamentals",
+        "V&V",
+        "interview"
+      ],
       "source": "Core ISTQB-style concept; common interview question",
       "notes": "Expect clear contrast, not a long textbook dump."
     },
@@ -43,7 +47,11 @@
         "ignore flaky tests forever"
       ],
       "context": null,
-      "tags": ["CI", "reliability", "automation"],
+      "tags": [
+        "CI",
+        "reliability",
+        "automation"
+      ],
       "source": "Daily CI pain; SDET interviews",
       "notes": null
     },
@@ -65,7 +73,11 @@
         "skip testing if time is short"
       ],
       "context": null,
-      "tags": ["test-strategy", "release", "risk-based"],
+      "tags": [
+        "test-strategy",
+        "release",
+        "risk-based"
+      ],
       "source": "Release readiness ownership (Microsoft/HCL style scenarios)",
       "notes": "Good answers sound like a QA lead, not a checklist bot."
     },
@@ -87,7 +99,12 @@
         "one giant class for the whole app is best"
       ],
       "context": null,
-      "tags": ["Playwright", "Selenium", "POM", "UI"],
+      "tags": [
+        "Playwright",
+        "Selenium",
+        "POM",
+        "UI"
+      ],
       "source": "Project 2 portfolio talking point",
       "notes": null
     },
@@ -109,7 +126,12 @@
         "never test error paths"
       ],
       "context": null,
-      "tags": ["API", "Pytest", "contract", "negative-testing"],
+      "tags": [
+        "API",
+        "Pytest",
+        "contract",
+        "negative-testing"
+      ],
       "source": "Project 1 API automation portfolio",
       "notes": null
     },
@@ -130,7 +152,11 @@
         "severity and priority are always identical"
       ],
       "context": null,
-      "tags": ["defects", "process", "interview"],
+      "tags": [
+        "defects",
+        "process",
+        "interview"
+      ],
       "source": "Classic QA process question",
       "notes": null
     },
@@ -152,7 +178,12 @@
         "only manual vibe checks are needed"
       ],
       "context": null,
-      "tags": ["LLM", "AI-QA", "evaluation", "career"],
+      "tags": [
+        "LLM",
+        "AI-QA",
+        "evaluation",
+        "career"
+      ],
       "source": "Bridge to Project 4 interview narrative",
       "notes": "Core differentiator case for AI QA roles."
     },
@@ -174,7 +205,11 @@
         "only run tests once a year"
       ],
       "context": null,
-      "tags": ["CI", "GitHub Actions", "process"],
+      "tags": [
+        "CI",
+        "GitHub Actions",
+        "process"
+      ],
       "source": "Portfolio projects with GH Actions",
       "notes": null
     },
@@ -196,7 +231,11 @@
         "never automate anything"
       ],
       "context": null,
-      "tags": ["strategy", "automation", "ROI"],
+      "tags": [
+        "strategy",
+        "automation",
+        "ROI"
+      ],
       "source": "Senior tester judgment; interview favorite",
       "notes": null
     },
@@ -218,9 +257,779 @@
         "expect 200 for wrong password"
       ],
       "context": null,
-      "tags": ["API", "negative", "security-basics", "login"],
+      "tags": [
+        "API",
+        "negative",
+        "security-basics",
+        "login"
+      ],
       "source": "API automation + security-minded QA",
       "notes": "Aligns with Project 1 negative cases mindset."
+    },
+    {
+      "id": "qa-011",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "easy",
+      "question": "What is regression testing?",
+      "reference_answer": "Regression testing re-runs selected tests after changes to check that existing behaviour still works. It protects against unintended side effects when code, config, or dependencies change. Suites are often automated and run in CI for fast feedback.",
+      "must_include": [
+        "regression",
+        "existing",
+        "changes",
+        "side effects"
+      ],
+      "must_not_include": [
+        "skip regression after every release"
+      ],
+      "context": null,
+      "tags": [
+        "concepts",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-012",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "easy",
+      "question": "What is smoke testing?",
+      "reference_answer": "Smoke testing is a shallow, fast set of checks that the build is stable enough for deeper testing. It covers critical launch paths (start app, login, core navigation). If smoke fails, further testing is usually blocked until the build is fixed.",
+      "must_include": [
+        "smoke",
+        "critical",
+        "fast",
+        "build"
+      ],
+      "must_not_include": [
+        "smoke testing replaces full regression"
+      ],
+      "context": null,
+      "tags": [
+        "concepts",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-013",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "easy",
+      "question": "What is a test oracle?",
+      "reference_answer": "A test oracle is the mechanism that decides whether an observed result is correct. Oracles can be expected values, prior system behaviour, specifications, or human judgment. Without a clear oracle, automation cannot reliably pass or fail a check.",
+      "must_include": [
+        "oracle",
+        "correct",
+        "expected"
+      ],
+      "must_not_include": [
+        "oracle means only production monitoring"
+      ],
+      "context": null,
+      "tags": [
+        "concepts",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-014",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "medium",
+      "question": "What is boundary value analysis?",
+      "reference_answer": "Boundary value analysis designs tests at the edges of input ranges where defects often cluster, such as min, max, just inside, and just outside limits. It complements equivalence partitioning by focusing on edges rather than only representative middle values.",
+      "must_include": [
+        "boundary",
+        "edge",
+        "min",
+        "max"
+      ],
+      "must_not_include": [
+        "only test mid-range values"
+      ],
+      "context": null,
+      "tags": [
+        "concepts",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-015",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "medium",
+      "question": "What is equivalence partitioning?",
+      "reference_answer": "Equivalence partitioning groups inputs that should behave the same into classes, then tests one or few values per class. This reduces redundant cases while keeping coverage of distinct behaviours, including invalid partitions for negative tests.",
+      "must_include": [
+        "equivalence",
+        "partition",
+        "classes",
+        "reduce"
+      ],
+      "must_not_include": [
+        "test every possible input value always"
+      ],
+      "context": null,
+      "tags": [
+        "concepts",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-016",
+      "domain": "software_testing_assistant",
+      "category": "strategy",
+      "difficulty": "medium",
+      "question": "What is risk-based testing?",
+      "reference_answer": "Risk-based testing allocates effort where failure impact or likelihood is highest. Teams rank features by business criticality, change frequency, and defect history, then deepen tests on top risks first. Lower-risk areas get lighter coverage when time is limited.",
+      "must_include": [
+        "risk",
+        "impact",
+        "priority",
+        "coverage"
+      ],
+      "must_not_include": [
+        "test only low-risk areas first"
+      ],
+      "context": null,
+      "tags": [
+        "strategy",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-017",
+      "domain": "software_testing_assistant",
+      "category": "strategy",
+      "difficulty": "medium",
+      "question": "How do you decide the test pyramid balance for a web app?",
+      "reference_answer": "Prefer many fast unit tests, fewer integration tests, and a thin UI end-to-end layer. UI tests are valuable for critical journeys but are slower and flakier, so keep them focused. APIs and services should carry most contract and business-rule checks below the UI.",
+      "must_include": [
+        "unit",
+        "integration",
+        "UI",
+        "critical journeys"
+      ],
+      "must_not_include": [
+        "only UI end-to-end tests"
+      ],
+      "context": null,
+      "tags": [
+        "strategy",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-018",
+      "domain": "software_testing_assistant",
+      "category": "strategy",
+      "difficulty": "hard",
+      "question": "How would you plan testing for a feature behind a feature flag?",
+      "reference_answer": "Test both flag-off and flag-on behaviour, including default state for existing users. Cover rollout percentage edge cases if applicable, configuration mistakes, and cleanup when the flag is removed. Automate critical paths for both states and verify analytics or logging still make sense.",
+      "must_include": [
+        "flag-on",
+        "flag-off",
+        "default",
+        "rollout"
+      ],
+      "must_not_include": [
+        "test only when flag is on"
+      ],
+      "context": null,
+      "tags": [
+        "strategy",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-019",
+      "domain": "software_testing_assistant",
+      "category": "automation",
+      "difficulty": "easy",
+      "question": "What is the difference between unit tests and end-to-end tests?",
+      "reference_answer": "Unit tests verify small units of code in isolation with fast feedback. End-to-end tests exercise full user flows through the real stack and catch integration issues but are slower and more brittle. Both belong in a balanced strategy.",
+      "must_include": [
+        "unit",
+        "isolation",
+        "end-to-end",
+        "user flows"
+      ],
+      "must_not_include": [
+        "unit tests replace e2e entirely"
+      ],
+      "context": null,
+      "tags": [
+        "automation",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-020",
+      "domain": "software_testing_assistant",
+      "category": "automation",
+      "difficulty": "medium",
+      "question": "Why is waiting for fixed sleeps a bad practice in UI automation?",
+      "reference_answer": "Hard-coded sleeps slow the suite and still fail under load variance. Prefer explicit waits for conditions such as element visible, network idle, or text present. Condition-based waits are faster when the app is quick and more reliable when it is slow.",
+      "must_include": [
+        "sleep",
+        "explicit wait",
+        "condition",
+        "flaky"
+      ],
+      "must_not_include": [
+        "always sleep 10 seconds before every click"
+      ],
+      "context": null,
+      "tags": [
+        "automation",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-021",
+      "domain": "software_testing_assistant",
+      "category": "automation",
+      "difficulty": "medium",
+      "question": "What artifacts help debug a failed Playwright or Selenium test in CI?",
+      "reference_answer": "Screenshots, DOM snapshots, video recordings, Playwright traces, browser console logs, and network HAR files help reproduce failures. Attach them on failure in CI so engineers can diagnose without re-running locally first.",
+      "must_include": [
+        "screenshot",
+        "trace",
+        "logs",
+        "CI"
+      ],
+      "must_not_include": [
+        "never keep failure artifacts"
+      ],
+      "context": null,
+      "tags": [
+        "automation",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-022",
+      "domain": "software_testing_assistant",
+      "category": "automation",
+      "difficulty": "hard",
+      "question": "How do you keep a large UI automation suite maintainable?",
+      "reference_answer": "Use page objects or screenplay patterns, stable test ids, shared fixtures, and clear data setup/teardown. Tag tests by risk and run smoke on every PR with fuller suites nightly. Quarantine flaky tests with ownership instead of silent retries forever. Review suite health metrics regularly.",
+      "must_include": [
+        "page object",
+        "fixtures",
+        "flaky",
+        "smoke"
+      ],
+      "must_not_include": [
+        "duplicate selectors in every test"
+      ],
+      "context": null,
+      "tags": [
+        "automation",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-023",
+      "domain": "software_testing_assistant",
+      "category": "api",
+      "difficulty": "easy",
+      "question": "What is an HTTP 401 status code typically mean?",
+      "reference_answer": "HTTP 401 Unauthorized usually means the request lacks valid authentication credentials. The client should authenticate or refresh tokens and retry. It is different from 403 Forbidden, which often means identity is known but not allowed.",
+      "must_include": [
+        "401",
+        "authentication",
+        "credentials"
+      ],
+      "must_not_include": [
+        "401 always means server crash"
+      ],
+      "context": null,
+      "tags": [
+        "api",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-024",
+      "domain": "software_testing_assistant",
+      "category": "api",
+      "difficulty": "medium",
+      "question": "What is contract testing for APIs?",
+      "reference_answer": "Contract testing verifies that a provider and consumer agree on request/response shapes and semantics, often via schemas or consumer-driven contracts. It catches breaking API changes early without full end-to-end environments for every pair.",
+      "must_include": [
+        "contract",
+        "provider",
+        "consumer",
+        "schema"
+      ],
+      "must_not_include": [
+        "contract testing only checks UI pixels"
+      ],
+      "context": null,
+      "tags": [
+        "api",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-025",
+      "domain": "software_testing_assistant",
+      "category": "api",
+      "difficulty": "medium",
+      "question": "How would you test API idempotency for a payment or create endpoint?",
+      "reference_answer": "Send the same request twice with the same idempotency key or payload and assert only one resource is created and responses are consistent. Verify retries after timeouts do not double-charge. Check status codes and body identity or conflict handling as designed.",
+      "must_include": [
+        "idempotency",
+        "retry",
+        "duplicate",
+        "same request"
+      ],
+      "must_not_include": [
+        "ignore double-submit behaviour"
+      ],
+      "context": null,
+      "tags": [
+        "api",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-026",
+      "domain": "software_testing_assistant",
+      "category": "api",
+      "difficulty": "hard",
+      "question": "What security checks belong in basic API regression?",
+      "reference_answer": "Include authn/authz failures, injection-like inputs, oversized payloads, sensitive data leakage in errors, HTTPS expectations, and rate limiting if specified. Assert no stack traces or secrets in responses. Pair automated checks with periodic deeper security reviews.",
+      "must_include": [
+        "authorization",
+        "injection",
+        "sensitive data",
+        "error responses"
+      ],
+      "must_not_include": [
+        "security is only a pen-test once a year and never in QA"
+      ],
+      "context": null,
+      "tags": [
+        "api",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-027",
+      "domain": "software_testing_assistant",
+      "category": "process",
+      "difficulty": "easy",
+      "question": "What is a test plan versus a test case?",
+      "reference_answer": "A test plan describes scope, approach, resources, schedule, and risks for a release or project. A test case is a specific set of steps, data, and expected results for one behaviour. Plans guide strategy; cases execute checks.",
+      "must_include": [
+        "test plan",
+        "scope",
+        "test case",
+        "expected results"
+      ],
+      "must_not_include": [
+        "plan and case are the same document"
+      ],
+      "context": null,
+      "tags": [
+        "process",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-028",
+      "domain": "software_testing_assistant",
+      "category": "process",
+      "difficulty": "medium",
+      "question": "How should QA write a high-quality bug report?",
+      "reference_answer": "Include a clear title, environment, steps to reproduce, expected versus actual results, severity, evidence (logs/screenshots), and any workarounds. Note build version and whether the issue is new or regressed. Good reports reduce back-and-forth and speed fixes.",
+      "must_include": [
+        "steps to reproduce",
+        "expected",
+        "actual",
+        "evidence"
+      ],
+      "must_not_include": [
+        "title only is enough for a bug"
+      ],
+      "context": null,
+      "tags": [
+        "process",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-029",
+      "domain": "software_testing_assistant",
+      "category": "process",
+      "difficulty": "medium",
+      "question": "What is shift-left testing?",
+      "reference_answer": "Shift-left moves testing earlier: reviews, unit tests, API checks, and static analysis during development instead of only after a full build. It finds defects when they are cheaper to fix and improves shared ownership of quality.",
+      "must_include": [
+        "earlier",
+        "development",
+        "cheaper",
+        "quality"
+      ],
+      "must_not_include": [
+        "shift-left means no testing before release"
+      ],
+      "context": null,
+      "tags": [
+        "process",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-030",
+      "domain": "software_testing_assistant",
+      "category": "process",
+      "difficulty": "hard",
+      "question": "How do you handle a release when critical bugs remain open?",
+      "reference_answer": "Communicate residual risk clearly with severity, user impact, and likelihood. Agree go/no-go with product and engineering using documented criteria. Consider feature flags, hotfixes, or delayed rollout. Never hide known critical issues; record the decision and follow-up.",
+      "must_include": [
+        "residual risk",
+        "go/no-go",
+        "impact",
+        "stakeholders"
+      ],
+      "must_not_include": [
+        "ship silently without mentioning known critical bugs"
+      ],
+      "context": null,
+      "tags": [
+        "process",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-031",
+      "domain": "software_testing_assistant",
+      "category": "tooling",
+      "difficulty": "easy",
+      "question": "What is the role of a test management tool like Azure Test Plans or TestRail?",
+      "reference_answer": "Test management tools organize cases, plans, runs, and traceability to requirements. They track execution status, ownership, and defects linked to cases. They complement automation rather than replacing it.",
+      "must_include": [
+        "test cases",
+        "execution",
+        "traceability"
+      ],
+      "must_not_include": [
+        "automation makes test management tools useless"
+      ],
+      "context": null,
+      "tags": [
+        "tooling",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-032",
+      "domain": "software_testing_assistant",
+      "category": "tooling",
+      "difficulty": "medium",
+      "question": "When would you choose Pytest over a pure UI recorder tool?",
+      "reference_answer": "Pytest suits API, unit, and structured automation with fixtures, parametrization, and CI plugins. Recorders can bootstrap UI flows but often produce brittle scripts. Prefer code-first frameworks for maintainable suites and complex assertions.",
+      "must_include": [
+        "fixtures",
+        "parametrization",
+        "maintainable",
+        "CI"
+      ],
+      "must_not_include": [
+        "recorders are always better than code"
+      ],
+      "context": null,
+      "tags": [
+        "tooling",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-033",
+      "domain": "software_testing_assistant",
+      "category": "tooling",
+      "difficulty": "medium",
+      "question": "What is the benefit of structured logging in test automation?",
+      "reference_answer": "Structured logs with timestamps, case ids, and step markers speed debugging in CI. They help correlate failures with environment issues and support aggregation. Pair logs with screenshots and traces for UI failures.",
+      "must_include": [
+        "logs",
+        "debugging",
+        "CI",
+        "correlate"
+      ],
+      "must_not_include": [
+        "print random text without context"
+      ],
+      "context": null,
+      "tags": [
+        "tooling",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-034",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "medium",
+      "question": "What is exploratory testing?",
+      "reference_answer": "Exploratory testing is simultaneous learning, test design, and execution guided by charters rather than fully scripted steps. It finds unexpected issues automation misses. Sessions should still capture notes, bugs, and coverage ideas.",
+      "must_include": [
+        "exploratory",
+        "learning",
+        "charter",
+        "unscripted"
+      ],
+      "must_not_include": [
+        "exploratory means random clicking with no notes"
+      ],
+      "context": null,
+      "tags": [
+        "concepts",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-035",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "hard",
+      "question": "What is non-functional testing? Give examples relevant to web APIs.",
+      "reference_answer": "Non-functional testing checks how a system behaves, not only what it does: performance, reliability, security, usability, and compatibility. For APIs, examples include load/latency, rate limits, availability, and auth hardening under stress.",
+      "must_include": [
+        "non-functional",
+        "performance",
+        "security",
+        "latency"
+      ],
+      "must_not_include": [
+        "non-functional only means UI colours"
+      ],
+      "context": null,
+      "tags": [
+        "concepts",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-036",
+      "domain": "software_testing_assistant",
+      "category": "strategy",
+      "difficulty": "hard",
+      "question": "How would you test an A/B experiment on a checkout page?",
+      "reference_answer": "Verify assignment logic, both variants render correctly, metrics events fire, and no PII leaks. Test edge cases like refresh, back button, and logged-out users. Coordinate with analytics owners on success metrics and stop conditions if a variant breaks conversion.",
+      "must_include": [
+        "variants",
+        "assignment",
+        "metrics",
+        "checkout"
+      ],
+      "must_not_include": [
+        "test only the control variant"
+      ],
+      "context": null,
+      "tags": [
+        "strategy",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-037",
+      "domain": "software_testing_assistant",
+      "category": "api",
+      "difficulty": "easy",
+      "question": "What does JSON schema validation catch in API tests?",
+      "reference_answer": "JSON schema validation checks types, required fields, enums, and structure of responses. It fails fast when the contract drifts even if status codes stay 200. It does not fully prove business correctness of values.",
+      "must_include": [
+        "schema",
+        "types",
+        "required fields",
+        "contract"
+      ],
+      "must_not_include": [
+        "schema validation proves all business rules"
+      ],
+      "context": null,
+      "tags": [
+        "api",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-038",
+      "domain": "software_testing_assistant",
+      "category": "automation",
+      "difficulty": "medium",
+      "question": "What is test data management and why does it matter?",
+      "reference_answer": "Test data management is planning creation, isolation, privacy, and cleanup of data used by tests. Poor data causes flakes, false failures, and environment pollution. Prefer fixtures, factories, and dedicated accounts over sharing mutable production-like data blindly.",
+      "must_include": [
+        "test data",
+        "isolation",
+        "cleanup",
+        "flaky"
+      ],
+      "must_not_include": [
+        "always use production customer data in tests"
+      ],
+      "context": null,
+      "tags": [
+        "automation",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-039",
+      "domain": "software_testing_assistant",
+      "category": "strategy",
+      "difficulty": "easy",
+      "question": "What is a definition of done for a user story from a QA perspective?",
+      "reference_answer": "Definition of done should include agreed tests executed, acceptance criteria met, defects of agreed severity resolved or waived, and automation updated when required. It makes quality expectations explicit before a story is called complete.",
+      "must_include": [
+        "acceptance criteria",
+        "tests",
+        "done",
+        "quality"
+      ],
+      "must_not_include": [
+        "done means code compiled only"
+      ],
+      "context": null,
+      "tags": [
+        "strategy",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-040",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "medium",
+      "question": "What is mutation testing at a high level?",
+      "reference_answer": "Mutation testing introduces small code changes (mutants) and checks whether the test suite fails them. If mutants survive, tests may be weak. It measures suite effectiveness beyond line coverage, at higher compute cost.",
+      "must_include": [
+        "mutants",
+        "test suite",
+        "effectiveness",
+        "coverage"
+      ],
+      "must_not_include": [
+        "mutation testing only counts UI clicks"
+      ],
+      "context": null,
+      "tags": [
+        "concepts",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-041",
+      "domain": "software_testing_assistant",
+      "category": "process",
+      "difficulty": "medium",
+      "question": "How can QA support continuous delivery?",
+      "reference_answer": "Invest in reliable automation, fast smoke suites, test environments that match production contracts, and clear quality signals in the pipeline. Pair with feature flags and progressive delivery. Focus exploratory effort on high-risk changes each release train.",
+      "must_include": [
+        "automation",
+        "pipeline",
+        "smoke",
+        "feature flags"
+      ],
+      "must_not_include": [
+        "block every deploy for week-long manual only cycles"
+      ],
+      "context": null,
+      "tags": [
+        "process",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
+    },
+    {
+      "id": "qa-042",
+      "domain": "software_testing_assistant",
+      "category": "concepts",
+      "difficulty": "hard",
+      "question": "What is faithfulness in LLM evaluation, and why do QA teams care?",
+      "reference_answer": "Faithfulness measures whether a model answer stays consistent with provided context instead of inventing facts. QA cares because hallucinations create silent product failures that classical asserts miss. Faithfulness metrics plus golden sets support release gates for RAG and LLM features.",
+      "must_include": [
+        "faithfulness",
+        "context",
+        "hallucination",
+        "golden"
+      ],
+      "must_not_include": [
+        "faithfulness means the UI looks pretty"
+      ],
+      "context": null,
+      "tags": [
+        "concepts",
+        "m4"
+      ],
+      "source": "M4 golden set expansion",
+      "notes": null
     }
   ]
 }

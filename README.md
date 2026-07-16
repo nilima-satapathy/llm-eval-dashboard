@@ -2,7 +2,7 @@
 
 > Signature AI QA project — golden-set evaluation for an LLM / RAG system  
 > **Owner:** Nilima Satapathy  
-> **Status:** M1–M3 complete. Expand cases in M4.
+> **Status:** M1–M4 complete. Persist runs in M5.
 
 ## What this will become
 
@@ -22,7 +22,7 @@ C:\Users\admin\Code\llm-eval-dashboard
 | **M1** | Golden dataset schema + 10 seed cases | **Done** |
 | **M2** | Target app client | **Done** |
 | **M3** | First metrics green in Pytest | **Done** |
-| M4 | 40+ cases + second metric | Pending |
+| **M4** | 40+ cases + second metric | **Done** |
 | M5 | Latency/cost + run store | Pending |
 | M6 | Streamlit dashboard | Pending |
 | M7 | Red-team subset | Pending |
@@ -95,9 +95,20 @@ set OPENAI_API_KEY=sk-...
 pytest tests/test_answer_relevancy.py -v
 ```
 
-## M1 — golden set
+## Golden set + metrics
 
-Domain **software_testing_assistant** — 10 cases in `golden_dataset/qa_pairs.json`.
+Domain **software_testing_assistant** — **42 cases** in `golden_dataset/qa_pairs.json`.
+
+| Metric | Module / test | Offline |
+|--------|----------------|---------|
+| must_include | `metrics_basic` / `test_must_include.py` | Yes |
+| reference_overlap | `metrics_basic` / `test_reference_overlap.py` | Yes |
+| DeepEval answer relevancy | `test_answer_relevancy.py` | Needs judge API key |
+
+```bash
+set TARGET_BACKEND=golden
+pytest tests/ -v
+```
 
 ## Spec source
 
@@ -105,4 +116,4 @@ Domain **software_testing_assistant** — 10 cases in `golden_dataset/qa_pairs.j
 
 ## Next
 
-**M4:** Expand golden set to 40+ cases + second metric.
+**M5:** Persist evaluation runs (scores, latency, cost) for trend history.

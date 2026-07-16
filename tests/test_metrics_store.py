@@ -28,7 +28,8 @@ def test_run_evaluation_persists_sqlite_and_csv(tmp_path: Path):
 
     loaded = store.get_run(summary["run_id"])
     assert loaded is not None
-    assert loaded["notes"] == "m5-unit-test"
+    assert "m5-unit-test" in loaded["notes"]
+    assert "suite=golden" in loaded["notes"]
 
     rows = store.results_for_run(summary["run_id"])
     assert len(rows) == 3

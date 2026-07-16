@@ -1,0 +1,50 @@
+# M8 — offline CI quality gate (no live LLM / no paid API keys)
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    name: Offline pytest
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Force offline golden SUT
+        run: echo "TARGET_BACKEND=golden" >> "$GITHUB_ENV"
+
+      - name: Run offline test suite
+        env:
+          TARGET_BACKEND: golden
+          RUN_DEEPEVAL: "0"
+        run: |
+          python -m pytest tests/ -q --tb=short -m "not deepeval"
+
+      - name: Smoke eval CLI (golden + red-team quick)
+        env:
+          TARGET_BACKEND: golden
+        run: |
+          python scripts/run_eval.py --backend golden --suite golden --ids qa-001,qa-002 --notes ci-smoke --no-csv
+          python scripts/run_eval.py --backend golden --suite red_team --ids rt-001,rt-002 --notes ci-smoke-rt --no-csv

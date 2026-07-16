@@ -1,154 +1,208 @@
 # LLM Evaluation Dashboard
 
-> Signature AI QA project — golden-set evaluation for an LLM / RAG system  
-> **Owner:** Nilima Satapathy  
-> **Status:** M1–M6 complete. Red-team in M7.
+[![CI](https://github.com/nilima-satapathy/llm-eval-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/nilima-satapathy/llm-eval-dashboard/actions/workflows/ci.yml)
 
-## What this will become
+**Portfolio project — AI Test Engineer / GenAI quality**  
+**Owner:** [Nilima Satapathy](https://github.com/nilima-satapathy)  
+**Status:** M1–M8 complete
 
-A Pytest + DeepEval suite over a **golden dataset**, with latency/cost logging, a Streamlit dashboard, red-team cases, and CI smoke runs.  
-Target system: a **software testing assistant** (mock offline, or live LLM via OpenAI-compatible API).
+Golden-set + red-team evaluation harness for a **software testing assistant**, with offline metrics, run storage, and a Streamlit dashboard. Optional live model via any **OpenAI-compatible API** (e.g. Groq free tier).
 
-## Local path 
+---
 
+## Why this project
+
+Most demos show a chatbot. This project shows **how to measure one**:
+
+| Capability | What you can point to |
+|------------|------------------------|
+| Golden dataset design | 42 quality cases with reference answers + must-include gates |
+| Offline metrics | `must_include`, `reference_overlap`, forbidden-phrase checks |
+| Live model eval | Groq / OpenAI-compatible SUT with looser live thresholds |
+| Red-team / policy | 12 adversarial cases (jailbreak, secrets, off-scope, injection) |
+| Observability | Latency, tokens, rough cost, free-tier quota bar |
+| Engineering hygiene | Pytest suite, GitHub Actions CI, SQLite + CSV history |
+
+---
+
+## Architecture (interview view)
+
+```text
+┌──────────────────┐     complete(question)     ┌─────────────────────┐
+│ Golden / red-team│ ─────────────────────────► │ SUT backend         │
+│ cases (JSON)     │                            │ mock | golden | LLM │
+└────────┬─────────┘                            └──────────┬──────────┘
+         │                                                 │ answer
+         ▼                                                 ▼
+┌──────────────────┐                            ┌─────────────────────┐
+│ Offline metrics  │ ◄──── score ───────────────│ runners.evaluate    │
+│ must_include     │                            └──────────┬──────────┘
+│ overlap / policy │                                       │
+└──────────────────┘                                       ▼
+                                                ┌─────────────────────┐
+                                                │ SQLite + CSV        │
+                                                │ Streamlit dashboard │
+                                                └─────────────────────┘
 ```
-C:\Users\admin\Code\llm-eval-dashboard
+
+**Backends**
+
+| Backend | Answers from | Use when |
+|---------|--------------|----------|
+| `golden` | Written `reference_answer` | Demos, CI, prove the harness |
+| `mock` | Placeholder text | Show failures UI |
+| `openai` | Live API (Groq, OpenAI, Ollama, …) | Real model quality |
+
+---
+
+## Quick start
+
+```bash
+git clone https://github.com/nilima-satapathy/llm-eval-dashboard.git
+cd llm-eval-dashboard
+python -m venv .venv
+
+# Windows
+.\.venv\Scripts\activate
+# macOS/Linux
+# source .venv/bin/activate
+
+pip install -r requirements.txt
+copy .env.example .env   # Windows; or: cp .env.example .env
 ```
+
+### Offline eval + dashboard (no API key)
+
+```bash
+python scripts/run_eval.py --backend golden --suite golden
+python scripts/run_eval.py --backend golden --suite red_team
+python -m streamlit run dashboard/app.py
+```
+
+Open **http://localhost:8501**
+
+### Live model (optional — Groq free tier)
+
+1. Create a key at [console.groq.com/keys](https://console.groq.com/keys)  
+2. Put it in `.env` (never commit `.env`):
+
+```env
+TARGET_BACKEND=openai
+OPENAI_BASE_URL=https://api.groq.com/openai/v1
+OPENAI_API_KEY=gsk_...
+OPENAI_MODEL=llama-3.1-8b-instant
+```
+
+3. Prefer **Quick run** in the dashboard to save free quota.
+
+More free options: [docs/FREE_AI.md](docs/FREE_AI.md)
+
+---
+
+## Suites & metrics
+
+| Suite | File | Cases | Pass idea |
+|-------|------|-------|-----------|
+| **Quality** | `golden_dataset/qa_pairs.json` | 42 | Concepts present + reference similarity |
+| **Red-team** | `golden_dataset/red_team_cases.json` | 12 | Safe refusal; no attack compliance |
+
+| Metric | Role |
+|--------|------|
+| `must_include` | Required phrases / concepts (soft match for live paraphrase) |
+| `reference_overlap` | Jaccard vs golden reference (strict for golden; looser for live) |
+| `must_not_include` | Forbidden / attack-compliance phrases |
+| Free cloud quota bar | Daily token budget remaining (sidebar) |
+
+```bash
+# Full offline pytest (CI-equivalent)
+pytest tests/ -q -m "not deepeval"
+
+# CLI
+python scripts/run_eval.py --suite golden
+python scripts/run_eval.py --suite red_team
+python scripts/run_eval.py --suite all --backend golden
+```
+
+DeepEval answer-relevancy is **opt-in** (`RUN_DEEPEVAL=1` + judge key). See `tests/test_answer_relevancy.py`.
+
+---
+
+## Dashboard features
+
+- Run **quality**, **red-team**, or **all** from the sidebar  
+- Backends: golden / mock / openai  
+- Progress bar during long live runs  
+- Failures table + **per-case answer preview**  
+- Run history table  
+- Trends: pass rate, latency, cost (below history)  
+- Free cloud quota (today) bar  
+
+---
+
+## Project layout
+
+```text
+llm-eval-dashboard/
+├── .github/workflows/ci.yml     # M8 CI
+├── dashboard/app.py             # Streamlit UI
+├── golden_dataset/
+│   ├── qa_pairs.json            # 42 quality cases
+│   ├── red_team_cases.json      # 12 adversarial cases
+│   └── schema.json
+├── src/
+│   ├── target_app.py            # SUT clients
+│   ├── metrics_basic.py         # Offline metrics
+│   ├── runners.py               # Eval loop + store
+│   ├── metrics_store.py         # SQLite + CSV
+│   ├── dataset.py
+│   └── free_quota.py
+├── scripts/run_eval.py
+├── tests/
+├── docs/FREE_AI.md
+├── docs/RED_TEAM.md
+└── requirements.txt
+```
+
+---
 
 ## Milestone status
 
 | ID | Milestone | Status |
 |----|-----------|--------|
-| **M1** | Golden dataset schema + 10 seed cases | **Done** |
-| **M2** | Target app client | **Done** |
-| **M3** | First metrics green in Pytest | **Done** |
-| **M4** | 40+ cases + second metric | **Done** |
-| **M5** | Latency/cost + run store | **Done** |
-| **M6** | Streamlit dashboard | **Done** |
-| M7 | Red-team subset | Pending |
-| M8 | CI + recruiter README polish | Pending |
+| M1 | Golden dataset schema + seed cases | **Done** |
+| M2 | Target app client | **Done** |
+| M3 | Metrics green in Pytest | **Done** |
+| M4 | 40+ cases + second metric | **Done** |
+| M5 | Latency/cost + run store | **Done** |
+| M6 | Streamlit dashboard | **Done** |
+| M7 | Red-team subset | **Done** |
+| M8 | CI + recruiter README | **Done** |
 
-## Layout
+---
 
-```
-llm-eval-dashboard/
-├── README.md
-├── requirements.txt
-├── .env.example
-├── docs/GOLDEN_DATASET_SCHEMA.md
-├── golden_dataset/
-│   ├── schema.json
-│   └── qa_pairs.json        # 10 seed cases
-├── src/
-│   ├── __init__.py
-│   ├── target_app.py        # SUT: mock | golden | openai
-│   ├── dataset.py
-│   └── metrics_basic.py     # offline must_include
-├── tests/
-│   ├── conftest.py
-│   ├── test_must_include.py
-│   └── test_answer_relevancy.py  # DeepEval (needs API key)
-├── scripts/
-│   └── smoke_target.py
-└── pytest.ini
-```
+## CI
 
-## Setup
+On every push/PR to `master`/`main`:
 
-```bash
-cd C:\Users\admin\Code\llm-eval-dashboard
-python -m venv .venv
-.\.venv\Scripts\activate
-pip install -r requirements.txt
-```
+1. Install Python 3.12 + dependencies  
+2. `pytest tests/ -m "not deepeval"` with `TARGET_BACKEND=golden`  
+3. Smoke `run_eval.py` for quality + red-team subsets  
 
-## M2 — call the target
+No API keys required in CI.
 
-```bash
-# Offline (default)
-python scripts/smoke_target.py --id qa-002
+---
 
-# Custom prompt
-python scripts/smoke_target.py --prompt "What is regression testing?"
+## Interview one-liners
 
-# Live model (needs .env)
-# TARGET_BACKEND=openai OPENAI_API_KEY=... python scripts/smoke_target.py --id qa-001
-```
+> “I built a golden-set and red-team eval harness for a testing assistant—not a chatbot demo, a measurement system.”
 
-### Backends
+> “Golden proves the pipeline offline; live Groq shows real model gaps; red-team checks policy boundaries.”
 
-| `TARGET_BACKEND` | Behaviour |
-|------------------|-----------|
-| `mock` | Placeholder answer; smoke only |
-| `golden` | Returns golden `reference_answer` (offline eval harness) |
-| `openai` | Live Chat Completions |
+> “Results land in SQLite and Streamlit so I can compare runs, inspect failures, and watch free-tier quota.”
 
-## M3 — run metrics
+---
 
-```bash
-# Offline (default for tests: golden SUT)
-set TARGET_BACKEND=golden
-pytest tests/test_must_include.py -v
+## License / scope
 
-# DeepEval Answer Relevancy (judge needs OPENAI_API_KEY)
-set OPENAI_API_KEY=sk-...
-pytest tests/test_answer_relevancy.py -v
-```
-
-## Golden set + metrics
-
-Domain **software_testing_assistant** — **42 cases** in `golden_dataset/qa_pairs.json`.
-
-| Metric | Module / test | Offline |
-|--------|----------------|---------|
-| must_include | `metrics_basic` / `test_must_include.py` | Yes |
-| reference_overlap | `metrics_basic` / `test_reference_overlap.py` | Yes |
-| DeepEval answer relevancy | `test_answer_relevancy.py` | Needs judge API key |
-
-```bash
-set TARGET_BACKEND=golden
-pytest tests/ -v
-```
-
-## M5 — run eval and store results
-
-```bash
-set TARGET_BACKEND=golden
-python scripts/run_eval.py
-# → data/eval_runs.sqlite3
-# → reports/run_<id>.csv
-```
-
-Stores per-case scores, latency, tokens/cost (when available), and suite pass rate / p95 latency.
-
-## M6 — dashboard
-
-```bash
-set TARGET_BACKEND=golden
-python scripts/run_eval.py          # seed DB if empty
-python -m streamlit run dashboard/app.py   # http://localhost:8501
-```
-
-On Windows, prefer `python -m streamlit` (the `streamlit.exe` shim often errors).
-
-Shows pass rate, failures, latency/cost trends, and a run picker with per-case scores. Sidebar can trigger a new eval run.
-
-## Free AI (no paid API)
-
-See **[docs/FREE_AI.md](docs/FREE_AI.md)**.
-
-| Mode | Cost | How |
-|------|------|-----|
-| **golden** | Free | Default offline demo |
-| **Ollama** (local) | Free | `OPENAI_BASE_URL=http://localhost:11434/v1` |
-| **Groq** free tier | Free quota | Set Groq base URL + key |
-
-Dashboard sidebar → backend **openai** after configuring `.env`.
-
-## Spec source
-
-`AI-Career-Plan/04-projects/project-04-llm-eval-dashboard/SPEC.md`
-
-## Next
-
-**M7:** Red-team cases + tests.
+Portfolio project for interview demos. Not multi-tenant production SaaS.  
+Secrets stay in `.env` (gitignored).

@@ -26,6 +26,7 @@ load_dotenv()
 
 ROOT = Path(__file__).resolve().parents[1]
 GOLDEN_PATH = ROOT / "golden_dataset" / "qa_pairs.json"
+RED_TEAM_PATH = ROOT / "golden_dataset" / "red_team_cases.json"
 
 # Software-testing assistant system prompt (shared by live backends)
 SYSTEM_PROMPT = (
@@ -100,22 +101,29 @@ class MockTarget:
 
 class GoldenTarget:
     """
-    Offline SUT for evaluation harness tests (M3+).
+    Offline SUT for evaluation harness tests (M3+ / M7).
 
-    Looks up the exact question in qa_pairs.json and returns reference_answer.
-    Use this to prove the metric pipeline is wired without calling a paid LLM
-    for the *system under test* (DeepEval judge may still need a key).
+    Looks up the exact question in qa_pairs.json and red_team_cases.json
+    and returns reference_answer. Proves the metric pipeline without a live LLM.
     """
 
     name = "golden"
 
-    def __init__(self, golden_path: Path | None = None) -> None:
-        path = golden_path or GOLDEN_PATH
-        data = json.loads(path.read_text(encoding="utf-8"))
-        self._by_question = {
-            c["question"].strip(): c for c in data["cases"]
-        }
-        self._by_id = {c["id"]: c for c in data["cases"]}
+    def __init__(
+        self,
+        golden_path: Path | None = None,
+        red_team_path: Path | None = None,
+    ) -> None:
+        paths = [golden_path or GOLDEN_PATH, red_team_path or RED_TEAM_PATH]
+        self._by_question: dict[str, dict[str, Any]] = {}
+        self._by_id: dict[str, dict[str, Any]] = {}
+        for path in paths:
+            if not path.exists():
+                continue
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for c in data.get("cases") or []:
+                self._by_question[c["question"].strip()] = c
+                self._by_id[c["id"]] = c
 
     def complete(self, prompt: str) -> TargetResponse:
         t0 = time.perf_counter()
@@ -123,8 +131,8 @@ class GoldenTarget:
         case = self._by_question.get(prompt.strip())
         if case is None:
             answer = (
-                "[golden] No matching golden case for this prompt. "
-                "Use an exact question from golden_dataset/qa_pairs.json."
+                "[golden] No matching golden/red-team case for this prompt. "
+                "Use an exact question from golden_dataset/."
             )
             raw: dict[str, Any] = {"matched": False}
             model = "golden-miss"

@@ -1,0 +1,5 @@
+# Optional / local-only extras
+-r requirements.txt
+
+# LLM-as-judge (opt-in: RUN_DEEPEVAL=1)
+deepeval>=1.0.0

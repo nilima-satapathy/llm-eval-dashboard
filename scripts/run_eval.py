@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-M5 — Run full (or subset) evaluation and persist results.
+M5/M7 — Run full (or subset) evaluation and persist results.
 
 Usage (repo root):
   python scripts/run_eval.py
   python scripts/run_eval.py --backend golden
+  python scripts/run_eval.py --suite red_team
   python scripts/run_eval.py --ids qa-001,qa-002
   python scripts/run_eval.py --no-csv
 """
@@ -31,9 +32,15 @@ def main() -> None:
         help="mock|golden|openai (default: TARGET_BACKEND or golden)",
     )
     parser.add_argument(
+        "--suite",
+        default="golden",
+        choices=["golden", "red_team", "all"],
+        help="golden quality set | red_team adversarial | all",
+    )
+    parser.add_argument(
         "--ids",
         default=None,
-        help="Comma-separated case ids (default: all)",
+        help="Comma-separated case ids (default: all in suite)",
     )
     parser.add_argument(
         "--notes",
@@ -55,6 +62,7 @@ def main() -> None:
     out = run_evaluation(
         backend=backend,
         case_ids=case_ids,
+        suite=args.suite,
         notes=args.notes,
         export_csv=not args.no_csv,
     )

@@ -86,7 +86,8 @@ def test_run_evaluation_quick_subset_matches_dashboard(tmp_path: Path):
     )
     assert out["summary"]["total_cases"] == 4
     assert out["summary"]["pass_rate"] == 1.0
-    assert out["summary"]["notes"] == "dashboard-trigger"
+    assert "dashboard-trigger" in out["summary"]["notes"]
+    assert "suite=golden" in out["summary"]["notes"]
     assert out["summary"]["backend"] == "golden"
 
 

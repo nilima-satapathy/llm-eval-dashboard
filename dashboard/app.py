@@ -73,11 +73,23 @@ def render_free_tokens_bar(store: MetricsStore) -> None:
 def main() -> None:
     st.title("LLM Evaluation Dashboard")
     st.caption(
-        "Golden-set quality gates for a software testing assistant — "
+        "Quality + red-team gates for a software testing assistant — "
         "pass rate, failures, latency, and cost trends."
     )
 
     store = get_store()
+
+    # Survive st.rerun() so the user sees the last run outcome
+    if "last_run_banner" in st.session_state:
+        kind, msg = st.session_state.pop("last_run_banner")
+        if kind == "ok":
+            st.success(msg)
+        else:
+            st.error(msg)
+
+    # Placeholders in MAIN pane (not only sidebar) so progress is obvious
+    run_status = st.empty()
+    run_progress = st.empty()
 
     with st.sidebar:
         st.header("Controls")
@@ -87,36 +99,115 @@ def main() -> None:
             index=0,
             help="golden = offline reference answers; openai needs API keys",
         )
-        run_subset = st.checkbox("Quick run (4 seed cases only)", value=False)
+        suite = st.selectbox(
+            "Suite",
+            options=["golden", "red_team", "all"],
+            index=0,
+            format_func=lambda s: {
+                "golden": "Quality (golden)",
+                "red_team": "Red-team",
+                "all": "All (quality + red-team)",
+            }[s],
+            help="Red-team = adversarial prompts (jailbreak, secrets, off-scope)",
+        )
+        run_subset = st.checkbox(
+            "Quick run (subset only)",
+            value=False,
+            help="Quality: 4 seed cases. Red-team: first 4 rt cases.",
+        )
+
+        if backend == "openai" and not run_subset:
+            st.warning(
+                "Full **openai** runs are slow (~2s delay per case to avoid rate limits). "
+                "Use **Quick run** for demos."
+            )
 
         render_free_tokens_bar(store)
 
-        if st.button("▶ Run evaluation now", type="primary"):
-            with st.spinner("Running evaluation…"):
-                ids = (
-                    ["qa-001", "qa-002", "qa-004", "qa-007"] if run_subset else None
-                )
-                try:
-                    out = run_evaluation(
-                        backend=backend,
-                        case_ids=ids,
-                        store=store,
-                        notes="dashboard-trigger",
-                        export_csv=True,
-                    )
-                    st.success(
-                        f"Run {out['summary']['run_id']}: "
-                        f"{out['summary']['passed']}/{out['summary']['total_cases']} passed "
-                        f"({out['summary']['pass_rate']:.0%})"
-                    )
-                    if out.get("csv_path"):
-                        st.caption(f"CSV: {out['csv_path']}")
-                except Exception as exc:  # noqa: BLE001
-                    st.error(f"Run failed: {exc}")
-            st.rerun()
+        run_clicked = st.button(
+            "▶ Run evaluation now",
+            type="primary",
+            use_container_width=True,
+        )
 
         st.divider()
-        st.caption("must_include ≥ 0.70 · reference_overlap ≥ 0.85")
+        st.caption(
+            "Quality: must_include + overlap · "
+            "Red-team: refusal cues + no attack compliance"
+        )
+
+    if run_clicked:
+        ids = None
+        if run_subset:
+            if suite == "red_team":
+                ids = ["rt-001", "rt-002", "rt-003", "rt-004"]
+            elif suite == "all":
+                ids = ["qa-001", "qa-002", "rt-001", "rt-002"]
+            else:
+                ids = ["qa-001", "qa-002", "qa-004", "qa-007"]
+
+        n_hint = len(ids) if ids else {"golden": 42, "red_team": 12, "all": 54}.get(
+            suite, "?"
+        )
+        run_status.info(
+            f"Starting **{suite}** on **{backend}** "
+            f"({n_hint} cases)… progress updates below."
+        )
+        bar = run_progress.progress(0, text="Starting…")
+
+        def on_progress(done: int, total: int, case_id: str, phase: str) -> None:
+            total = max(total, 1)
+            if phase == "sleep":
+                frac = done / total
+                bar.progress(
+                    min(1.0, frac),
+                    text=f"Waiting before {case_id} ({done}/{total}) — rate-limit pause…",
+                )
+                run_status.info(
+                    f"Rate-limit pause, then **{case_id}** ({done + 1}/{total})…"
+                )
+            elif phase == "start":
+                frac = done / total
+                bar.progress(
+                    min(1.0, frac),
+                    text=f"Running {case_id} ({done + 1}/{total})…",
+                )
+                run_status.info(f"Evaluating **{case_id}** ({done + 1} of {total})…")
+            else:  # done
+                frac = done / total
+                bar.progress(
+                    min(1.0, frac),
+                    text=f"Finished {case_id} ({done}/{total})",
+                )
+
+        try:
+            out = run_evaluation(
+                backend=backend,
+                case_ids=ids,
+                suite=suite,  # type: ignore[arg-type]
+                store=store,
+                notes="dashboard-trigger",
+                export_csv=True,
+                on_progress=on_progress,
+            )
+            s = out["summary"]
+            suite_label = {
+                "golden": "Quality",
+                "red_team": "Red-team",
+                "all": "All suites",
+            }.get(suite, suite)
+            msg = (
+                f"**{s['passed']}/{s['total_cases']} passed** "
+                f"({s['pass_rate']:.0%}) — {suite_label} · {backend}"
+            )
+            st.session_state["last_run_banner"] = ("ok", msg)
+            bar.progress(1.0, text="Complete")
+            run_status.success(msg)
+        except Exception as exc:  # noqa: BLE001
+            err = f"Run failed: {exc}"
+            st.session_state["last_run_banner"] = ("err", err)
+            run_status.error(err)
+        st.rerun()
 
     df_runs = runs_df(store)
     if df_runs.empty:
@@ -151,27 +242,6 @@ def main() -> None:
 
     st.divider()
 
-    # —— Trends ——
-    left, right = st.columns(2)
-    with left:
-        st.subheader("Pass rate over runs")
-        chart = df_runs[["finished_at", "pass_rate"]].copy()
-        chart = chart.set_index("finished_at")
-        st.line_chart(chart, height=280)
-    with right:
-        st.subheader("Latency over runs (avg & p95)")
-        lat = df_runs[["finished_at", "avg_latency_ms", "p95_latency_ms"]].copy()
-        lat = lat.set_index("finished_at")
-        st.line_chart(lat, height=280)
-
-    if df_runs["estimated_cost_usd"].notna().any():
-        st.subheader("Estimated cost over runs (USD)")
-        cost_df = df_runs[["finished_at", "estimated_cost_usd"]].dropna()
-        cost_df = cost_df.set_index("finished_at")
-        st.line_chart(cost_df, height=220)
-
-    st.divider()
-
     # —— Run picker + details ——
     st.subheader("Run details")
     # Newest first for selectbox
@@ -200,78 +270,76 @@ def main() -> None:
 
     if res.empty:
         st.warning("No per-case rows for this run.")
-        return
+    else:
+        failed = res[res["passed"] == 0]
+        st.markdown(f"**Failures:** {len(failed)} / {len(res)}")
 
-    failed = res[res["passed"] == 0]
-    st.markdown(f"**Failures:** {len(failed)} / {len(res)}")
+        if not failed.empty:
+            st.error("Failed cases")
+            show_cols = [
+                c
+                for c in [
+                    "case_id",
+                    "must_include_score",
+                    "reference_overlap_score",
+                    "latency_ms",
+                    "error",
+                    "question",
+                    "answer",
+                ]
+                if c in failed.columns
+            ]
+            st.dataframe(failed[show_cols], use_container_width=True, hide_index=True)
 
-    if not failed.empty:
-        st.error("Failed cases")
-        show_cols = [
+        st.markdown("**All case results**")
+        table_cols = [
             c
             for c in [
                 "case_id",
+                "passed",
                 "must_include_score",
                 "reference_overlap_score",
                 "latency_ms",
-                "error",
-                "question",
-                "answer",
+                "total_tokens",
+                "estimated_cost_usd",
+                "model",
             ]
-            if c in failed.columns
+            if c in res.columns
         ]
-        st.dataframe(failed[show_cols], use_container_width=True, hide_index=True)
+        st.dataframe(res[table_cols], use_container_width=True, hide_index=True)
 
-    st.markdown("**All case results**")
-    table_cols = [
-        c
-        for c in [
-            "case_id",
-            "passed",
-            "must_include_score",
-            "reference_overlap_score",
-            "latency_ms",
-            "total_tokens",
-            "estimated_cost_usd",
-            "model",
-        ]
-        if c in res.columns
-    ]
-    st.dataframe(res[table_cols], use_container_width=True, hide_index=True)
-
-    # Preview answer for any selected case (default: first failure if any)
-    res_by_id = res.set_index("case_id", drop=False)
-    case_ids = list(res["case_id"])
-    failed_ids = list(failed["case_id"]) if not failed.empty else []
-    # Put failures first so they’re easy to pick
-    ordered_ids = failed_ids + [c for c in case_ids if c not in failed_ids]
-    status = {
-        cid: ("FAIL" if cid in failed_ids else "PASS") for cid in ordered_ids
-    }
-    preview_id = st.selectbox(
-        "Preview case answer",
-        options=ordered_ids,
-        format_func=lambda cid: f"{cid} · {status.get(cid, '?')}",
-        help="Choose any case to inspect the full model answer.",
-    )
-    row = res_by_id.loc[preview_id]
-    if getattr(row, "ndim", 1) > 1:
-        row = row.iloc[0]
-    preview = row.to_dict() if hasattr(row, "to_dict") else dict(row)
-
-    with st.expander("Raw answer preview", expanded=True):
-        st.write(f"**{preview['case_id']}** — {preview['question']}")
-        s1, s2, s3 = st.columns(3)
-        s1.metric("must_include", f"{float(preview['must_include_score']):.2f}")
-        s2.metric("overlap", f"{float(preview['reference_overlap_score']):.2f}")
-        s3.metric(
-            "Result",
-            "PASS" if int(preview["passed"]) == 1 else "FAIL",
+        # Preview answer for any selected case (default: first failure if any)
+        res_by_id = res.set_index("case_id", drop=False)
+        case_ids = list(res["case_id"])
+        failed_ids = list(failed["case_id"]) if not failed.empty else []
+        ordered_ids = failed_ids + [c for c in case_ids if c not in failed_ids]
+        status = {
+            cid: ("FAIL" if cid in failed_ids else "PASS") for cid in ordered_ids
+        }
+        preview_id = st.selectbox(
+            "Preview case answer",
+            options=ordered_ids,
+            format_func=lambda cid: f"{cid} · {status.get(cid, '?')}",
+            help="Choose any case to inspect the full model answer.",
         )
-        err = preview.get("error")
-        if err is not None and str(err) not in ("", "None", "nan"):
-            st.error(f"Error: {err}")
-        st.text(preview.get("answer") or "(empty)")
+        row = res_by_id.loc[preview_id]
+        if getattr(row, "ndim", 1) > 1:
+            row = row.iloc[0]
+        preview = row.to_dict() if hasattr(row, "to_dict") else dict(row)
+
+        with st.expander("Raw answer preview", expanded=True):
+            st.write(f"**{preview['case_id']}** — {preview['question']}")
+            s1, s2, s3 = st.columns(3)
+            s1.metric("must_include", f"{float(preview['must_include_score']):.2f}")
+            s2.metric("overlap", f"{float(preview['reference_overlap_score']):.2f}")
+            s3.metric(
+                "Result",
+                "PASS" if int(preview["passed"]) == 1 else "FAIL",
+            )
+            err = preview.get("error")
+            if err is not None and str(err) not in ("", "None", "nan"):
+                st.error(f"Error: {err}")
+            st.text(preview.get("answer") or "(empty)")
 
     st.divider()
     st.subheader("Run history")
@@ -297,6 +365,27 @@ def main() -> None:
         use_container_width=True,
         hide_index=True,
     )
+
+    # —— Trends (below history) ——
+    st.divider()
+    st.subheader("Trends")
+    left, right = st.columns(2)
+    with left:
+        st.markdown("**Pass rate over runs**")
+        chart = df_runs[["finished_at", "pass_rate"]].copy()
+        chart = chart.set_index("finished_at")
+        st.line_chart(chart, height=280)
+    with right:
+        st.markdown("**Latency over runs (avg & p95)**")
+        lat = df_runs[["finished_at", "avg_latency_ms", "p95_latency_ms"]].copy()
+        lat = lat.set_index("finished_at")
+        st.line_chart(lat, height=280)
+
+    if df_runs["estimated_cost_usd"].notna().any():
+        st.markdown("**Estimated cost over runs (USD)**")
+        cost_df = df_runs[["finished_at", "estimated_cost_usd"]].dropna()
+        cost_df = cost_df.set_index("finished_at")
+        st.line_chart(cost_df, height=220)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 """
-M5 — Run evaluation suite over golden cases and persist results.
+M5/M7 — Run evaluation suite over golden and/or red-team cases; persist results.
 """
 
 from __future__ import annotations
@@ -8,9 +8,9 @@ import os
 import time
 from dataclasses import asdict
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Callable
 
-from src.dataset import load_cases
+from src.dataset import SuiteName, is_red_team_case, load_cases
 from src.metrics_basic import (
     must_include_score,
     must_not_include_violations,
@@ -61,17 +61,15 @@ def evaluate_case(
     mi_threshold: float | None = None,
     ov_threshold: float | None = None,
 ) -> CaseResult:
-    """Score one golden case against the target SUT."""
+    """Score one case against the target SUT (quality or red-team)."""
     question = case["question"]
     backend_name = getattr(target, "name", "") or ""
-    mi_th = (
-        MUST_INCLUDE_THRESHOLD
-        if mi_threshold is None
-        else mi_threshold
-    )
+    mi_th = MUST_INCLUDE_THRESHOLD if mi_threshold is None else mi_threshold
     ov_th = OVERLAP_THRESHOLD if ov_threshold is None else ov_threshold
     if mi_threshold is None and ov_threshold is None:
         mi_th, ov_th = thresholds_for_backend(backend_name)
+
+    red = is_red_team_case(case)
 
     try:
         resp = target.complete(question)
@@ -80,11 +78,13 @@ def evaluate_case(
         violations = must_not_include_violations(
             resp.answer, case.get("must_not_include") or []
         )
-        # Live models: pass if concept coverage is solid, even when wording differs.
-        # Strict path still requires both gates (golden).
-        if backend_name in ("openai", "xai", "grok", "llm", "groq"):
+
+        if red:
+            # Policy-first: required refusal/safety cues + no attack compliance.
+            # Overlap is informational only (refusals vary in wording).
+            passed = mi >= mi_th and not violations
+        elif backend_name in ("openai", "xai", "grok", "llm", "groq"):
             concept_ok = mi >= mi_th
-            # Strong concept hit can pass with weaker overlap; else need both
             passed = (
                 concept_ok
                 and not violations
@@ -92,6 +92,7 @@ def evaluate_case(
             )
         else:
             passed = mi >= mi_th and ov >= ov_th and not violations
+
         cost = estimate_cost_usd(resp.total_tokens)
         return CaseResult(
             case_id=case["id"],
@@ -112,6 +113,7 @@ def evaluate_case(
                 "must_not_violations": violations,
                 "mi_threshold": mi_th,
                 "ov_threshold": ov_th,
+                "eval_mode": "red_team" if red else "quality",
             },
         )
     except Exception as exc:  # noqa: BLE001 — record failure per case
@@ -124,7 +126,7 @@ def evaluate_case(
             reference_overlap_score=0.0,
             latency_ms=0.0,
             error=str(exc),
-            details={},
+            details={"eval_mode": "red_team" if red else "quality"},
         )
 
 
@@ -132,20 +134,26 @@ def run_evaluation(
     *,
     backend: str | None = None,
     case_ids: list[str] | None = None,
+    suite: SuiteName = "golden",
     store: MetricsStore | None = None,
     notes: str = "",
     export_csv: bool = True,
+    on_progress: Callable[[int, int, str, str], None] | None = None,
 ) -> dict[str, Any]:
     """
-    Run metrics on golden cases, save to SQLite, optionally export CSV.
+    Run metrics on selected suite, save to SQLite, optionally export CSV.
 
-    Returns summary dict including run_id and paths.
+    suite: golden | red_team | all
+
+    on_progress(done_count, total, case_id, phase):
+      phase is "start" | "done" | "sleep" — for dashboard progress UI.
     """
     target = get_target(backend)
-    # Prefer explicit CLI/dashboard backend, then env, then resolved SUT name
-    effective_backend = (backend or os.getenv("TARGET_BACKEND") or target.name).strip().lower()
+    effective_backend = (
+        backend or os.getenv("TARGET_BACKEND") or target.name
+    ).strip().lower()
     mi_th, ov_th = thresholds_for_backend(target.name)
-    cases = load_cases()
+    cases = load_cases(suite=suite)
     if case_ids:
         id_set = set(case_ids)
         cases = [c for c in cases if c["id"] in id_set]
@@ -153,12 +161,20 @@ def run_evaluation(
     started = _utc_now()
     results: list[CaseResult] = []
     live = target.name in ("openai", "xai", "grok", "llm", "groq")
+    total = len(cases)
     for i, case in enumerate(cases):
+        cid = case["id"]
+        if on_progress:
+            on_progress(i, total, cid, "start")
         if live and i > 0 and LIVE_REQUEST_DELAY_S > 0:
+            if on_progress:
+                on_progress(i, total, cid, "sleep")
             time.sleep(LIVE_REQUEST_DELAY_S)
         results.append(
             evaluate_case(case, target, mi_threshold=mi_th, ov_threshold=ov_th)
         )
+        if on_progress:
+            on_progress(i + 1, total, cid, "done")
     finished = _utc_now()
 
     latencies = [r.latency_ms for r in results]
@@ -174,6 +190,9 @@ def run_evaluation(
     models = {r.model for r in results if r.model}
     model_label = ",".join(sorted(models)) if models else target.name
 
+    suite_note = f"suite={suite}"
+    full_notes = f"{notes}; {suite_note}".strip("; ") if notes else suite_note
+
     summary = RunSummary(
         run_id=new_run_id(),
         started_at=started,
@@ -188,7 +207,7 @@ def run_evaluation(
         p95_latency_ms=round(p95(latencies), 2),
         total_tokens=total_tokens,
         estimated_cost_usd=total_cost,
-        notes=notes,
+        notes=full_notes,
     )
 
     metrics_store = store or MetricsStore()
@@ -206,4 +225,5 @@ def run_evaluation(
         "db_path": str(metrics_store.db_path),
         "comparison": comparison,
         "failed_case_ids": [r.case_id for r in results if not r.passed],
+        "suite": suite,
     }

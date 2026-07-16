@@ -158,21 +158,23 @@ class OpenAICompatibleTarget:
         model: str | None = None,
         timeout_s: float = 60.0,
     ) -> None:
-        self.api_key = (
-            api_key
-            or os.getenv("OPENAI_API_KEY")
-            or os.getenv("XAI_API_KEY")
-            or ""
-        )
         self.base_url = (
             base_url or os.getenv("OPENAI_BASE_URL") or "https://api.openai.com/v1"
         ).rstrip("/")
         self.model = model or os.getenv("OPENAI_MODEL") or "gpt-4o-mini"
         self.timeout_s = timeout_s
+        # Ollama and some local servers accept any/non-empty key; default "ollama" for free local use
+        self.api_key = (
+            api_key
+            or os.getenv("OPENAI_API_KEY")
+            or os.getenv("XAI_API_KEY")
+            or os.getenv("GROQ_API_KEY")
+            or ("ollama" if "11434" in self.base_url else "")
+        )
         if not self.api_key:
             raise ValueError(
-                "OPENAI_API_KEY (or XAI_API_KEY) is required for openai backend. "
-                "Use TARGET_BACKEND=mock for offline smoke tests."
+                "API key required for openai backend (OPENAI_API_KEY / XAI_API_KEY / GROQ_API_KEY). "
+                "For free local AI use Ollama (see docs/FREE_AI.md) or TARGET_BACKEND=golden|mock."
             )
 
     def complete(self, prompt: str) -> TargetResponse:

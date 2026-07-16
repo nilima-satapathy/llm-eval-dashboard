@@ -126,10 +126,24 @@ Stores per-case scores, latency, tokens/cost (when available), and suite pass ra
 ```bash
 set TARGET_BACKEND=golden
 python scripts/run_eval.py          # seed DB if empty
-streamlit run dashboard/app.py      # http://localhost:8501
+python -m streamlit run dashboard/app.py   # http://localhost:8501
 ```
 
+On Windows, prefer `python -m streamlit` (the `streamlit.exe` shim often errors).
+
 Shows pass rate, failures, latency/cost trends, and a run picker with per-case scores. Sidebar can trigger a new eval run.
+
+## Free AI (no paid API)
+
+See **[docs/FREE_AI.md](docs/FREE_AI.md)**.
+
+| Mode | Cost | How |
+|------|------|-----|
+| **golden** | Free | Default offline demo |
+| **Ollama** (local) | Free | `OPENAI_BASE_URL=http://localhost:11434/v1` |
+| **Groq** free tier | Free quota | Set Groq base URL + key |
+
+Dashboard sidebar → backend **openai** after configuring `.env`.
 
 ## Spec source
 

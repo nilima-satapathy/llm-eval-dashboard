@@ -2,6 +2,6 @@
 requests>=2.31.0
 python-dotenv>=1.0.0
 
-# M3+ (install when you start metrics — not required for M2 mock smoke)
-# pytest>=8.0.0
-# deepeval>=1.0.0
+# M3 — metrics
+pytest>=8.0.0
+deepeval>=1.0.0

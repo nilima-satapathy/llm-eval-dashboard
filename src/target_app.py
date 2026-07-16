@@ -5,21 +5,27 @@ Contract used by later metrics (M3+):
   target.complete(prompt: str) -> TargetResponse
 
 Backends:
-  - mock  : offline, no API key (default)
-  - openai: OpenAI-compatible Chat Completions (OpenAI, xAI/Grok, Azure-compatible, etc.)
+  - mock  : offline placeholder (default for smoke only)
+  - golden: returns reference_answer from golden set (offline eval harness)
+  - openai: OpenAI-compatible Chat Completions (OpenAI, xAI/Grok, etc.)
 """
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Protocol
 
 import requests
 from dotenv import load_dotenv
 
 load_dotenv()
+
+ROOT = Path(__file__).resolve().parents[1]
+GOLDEN_PATH = ROOT / "golden_dataset" / "qa_pairs.json"
 
 # Software-testing assistant system prompt (shared by live backends)
 SYSTEM_PROMPT = (
@@ -85,6 +91,50 @@ class MockTarget:
             prompt_tokens=None,
             completion_tokens=None,
             raw={"mock": True},
+        )
+
+
+class GoldenTarget:
+    """
+    Offline SUT for evaluation harness tests (M3+).
+
+    Looks up the exact question in qa_pairs.json and returns reference_answer.
+    Use this to prove the metric pipeline is wired without calling a paid LLM
+    for the *system under test* (DeepEval judge may still need a key).
+    """
+
+    name = "golden"
+
+    def __init__(self, golden_path: Path | None = None) -> None:
+        path = golden_path or GOLDEN_PATH
+        data = json.loads(path.read_text(encoding="utf-8"))
+        self._by_question = {
+            c["question"].strip(): c for c in data["cases"]
+        }
+        self._by_id = {c["id"]: c for c in data["cases"]}
+
+    def complete(self, prompt: str) -> TargetResponse:
+        t0 = time.perf_counter()
+        time.sleep(0.005)
+        case = self._by_question.get(prompt.strip())
+        if case is None:
+            answer = (
+                "[golden] No matching golden case for this prompt. "
+                "Use an exact question from golden_dataset/qa_pairs.json."
+            )
+            raw: dict[str, Any] = {"matched": False}
+            model = "golden-miss"
+        else:
+            answer = case["reference_answer"]
+            raw = {"matched": True, "id": case["id"]}
+            model = f"golden:{case['id']}"
+        latency_ms = (time.perf_counter() - t0) * 1000
+        return TargetResponse(
+            answer=answer,
+            latency_ms=round(latency_ms, 2),
+            model=model,
+            backend=self.name,
+            raw=raw,
         )
 
 
@@ -159,15 +209,18 @@ class OpenAICompatibleTarget:
 
 def get_target(backend: str | None = None) -> TargetApp:
     """
-    Factory: TARGET_BACKEND=mock|openai (default mock).
+    Factory: TARGET_BACKEND=mock|golden|openai (default mock).
+    For M3 offline pytest, prefer golden.
     """
     choice = (backend or os.getenv("TARGET_BACKEND") or "mock").strip().lower()
     if choice in ("mock", "local"):
         return MockTarget()
+    if choice in ("golden", "reference", "oracle"):
+        return GoldenTarget()
     if choice in ("openai", "xai", "grok", "llm"):
         return OpenAICompatibleTarget()
     raise ValueError(
-        f"Unknown TARGET_BACKEND={choice!r}. Use 'mock' or 'openai'."
+        f"Unknown TARGET_BACKEND={choice!r}. Use 'mock', 'golden', or 'openai'."
     )
 
 

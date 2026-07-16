@@ -1,4 +1,4 @@
-"""LLM eval dashboard — target system client and (later) runners/store."""
+"""LLM eval dashboard — target system client and metrics helpers."""
 
 from src.target_app import TargetResponse, get_target, ask
 

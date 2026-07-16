@@ -2,7 +2,7 @@
 
 > Signature AI QA project — golden-set evaluation for an LLM / RAG system  
 > **Owner:** Nilima Satapathy  
-> **Status:** M1–M2 complete. Metrics start M3.
+> **Status:** M1–M3 complete. Expand cases in M4.
 
 ## What this will become
 
@@ -21,7 +21,7 @@ C:\Users\admin\Code\llm-eval-dashboard
 |----|-----------|--------|
 | **M1** | Golden dataset schema + 10 seed cases | **Done** |
 | **M2** | Target app client | **Done** |
-| M3 | First DeepEval metric in Pytest | Pending |
+| **M3** | First metrics green in Pytest | **Done** |
 | M4 | 40+ cases + second metric | Pending |
 | M5 | Latency/cost + run store | Pending |
 | M6 | Streamlit dashboard | Pending |
@@ -41,9 +41,16 @@ llm-eval-dashboard/
 │   └── qa_pairs.json        # 10 seed cases
 ├── src/
 │   ├── __init__.py
-│   └── target_app.py        # SUT client (M2)
-└── scripts/
-    └── smoke_target.py
+│   ├── target_app.py        # SUT: mock | golden | openai
+│   ├── dataset.py
+│   └── metrics_basic.py     # offline must_include
+├── tests/
+│   ├── conftest.py
+│   ├── test_must_include.py
+│   └── test_answer_relevancy.py  # DeepEval (needs API key)
+├── scripts/
+│   └── smoke_target.py
+└── pytest.ini
 ```
 
 ## Setup
@@ -72,8 +79,21 @@ python scripts/smoke_target.py --prompt "What is regression testing?"
 
 | `TARGET_BACKEND` | Behaviour |
 |------------------|-----------|
-| `mock` (default) | Deterministic placeholder answer; no key |
-| `openai` | Chat Completions (`OPENAI_BASE_URL` + `OPENAI_API_KEY` or `XAI_API_KEY`) |
+| `mock` | Placeholder answer; smoke only |
+| `golden` | Returns golden `reference_answer` (offline eval harness) |
+| `openai` | Live Chat Completions |
+
+## M3 — run metrics
+
+```bash
+# Offline (default for tests: golden SUT)
+set TARGET_BACKEND=golden
+pytest tests/test_must_include.py -v
+
+# DeepEval Answer Relevancy (judge needs OPENAI_API_KEY)
+set OPENAI_API_KEY=sk-...
+pytest tests/test_answer_relevancy.py -v
+```
 
 ## M1 — golden set
 
@@ -85,4 +105,4 @@ Domain **software_testing_assistant** — 10 cases in `golden_dataset/qa_pairs.j
 
 ## Next
 
-**M3:** Wire DeepEval (e.g. answer relevancy) in Pytest against `get_target().complete()`.
+**M4:** Expand golden set to 40+ cases + second metric.

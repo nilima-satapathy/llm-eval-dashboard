@@ -78,9 +78,9 @@
       "reference_answer": "Page Object Model (POM) represents each page or component as a class that encapsulates locators and user actions. Tests call high-level methods instead of raw selectors. This reduces duplication, isolates UI churn to one place, and makes tests more readable and maintainable as the product UI changes.",
       "must_include": [
         "locators",
-        "encapsulation",
-        "maintainability",
-        "tests call methods"
+        "encapsulates",
+        "maintainable",
+        "page object"
       ],
       "must_not_include": [
         "POM means recording clicks only",

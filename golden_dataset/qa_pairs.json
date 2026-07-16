@@ -64,8 +64,8 @@
       "reference_answer": "Prioritize by risk and user impact: critical user journeys, high-severity areas, recent code changes, and historically buggy modules. Prefer smoke and high-value regression over exhaustive edge coverage. Document what was deferred and why so residual risk is visible to stakeholders. Time-box exploratory testing on the riskiest new behaviour.",
       "must_include": [
         "risk",
-        "critical journeys",
-        "recent changes",
+        "critical user journeys",
+        "recent code changes",
         "smoke"
       ],
       "must_not_include": [
@@ -247,10 +247,10 @@
       "question": "How would you design negative API tests for a login endpoint?",
       "reference_answer": "Cover missing fields, wrong password, unknown user, empty body, malformed JSON, SQL/script injection strings, locked or disabled accounts if applicable, and rate-limit behaviour if specified. Assert correct HTTP status (401/400/403/429 as designed), stable error codes/messages, no stack traces or sensitive data in responses, and that no session token is issued on failure. Keep tests data-driven for maintainability.",
       "must_include": [
-        "invalid credentials",
-        "malformed input",
-        "status code",
-        "no token on failure"
+        "wrong password",
+        "malformed JSON",
+        "HTTP status",
+        "no session token"
       ],
       "must_not_include": [
         "only test happy path login",
@@ -609,9 +609,9 @@
       "reference_answer": "Send the same request twice with the same idempotency key or payload and assert only one resource is created and responses are consistent. Verify retries after timeouts do not double-charge. Check status codes and body identity or conflict handling as designed.",
       "must_include": [
         "idempotency",
-        "retry",
-        "duplicate",
-        "same request"
+        "retries",
+        "same request",
+        "created"
       ],
       "must_not_include": [
         "ignore double-submit behaviour"
@@ -632,10 +632,10 @@
       "question": "What security checks belong in basic API regression?",
       "reference_answer": "Include authn/authz failures, injection-like inputs, oversized payloads, sensitive data leakage in errors, HTTPS expectations, and rate limiting if specified. Assert no stack traces or secrets in responses. Pair automated checks with periodic deeper security reviews.",
       "must_include": [
-        "authorization",
+        "authn/authz",
         "injection",
         "sensitive data",
-        "error responses"
+        "stack traces"
       ],
       "must_not_include": [
         "security is only a pen-test once a year and never in QA"
@@ -752,7 +752,7 @@
       "question": "What is the role of a test management tool like Azure Test Plans or TestRail?",
       "reference_answer": "Test management tools organize cases, plans, runs, and traceability to requirements. They track execution status, ownership, and defects linked to cases. They complement automation rather than replacing it.",
       "must_include": [
-        "test cases",
+        "cases",
         "execution",
         "traceability"
       ],

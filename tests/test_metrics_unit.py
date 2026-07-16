@@ -26,6 +26,18 @@ def test_must_include_case_insensitive():
     assert must_include_score("REGRESSION testing", ["regression"]) == 1.0
 
 
+def test_must_include_soft_hyphen_and_paraphrase():
+    # Live models often drop hyphens or reorder words
+    answer = (
+        "A flaky test is non deterministic and harms continuous integration "
+        "because of false failures that erode trust."
+    )
+    score = must_include_score(
+        answer, ["non-deterministic", "CI", "false failure", "trust"]
+    )
+    assert score >= 0.75
+
+
 def test_must_not_include_detects_forbidden():
     v = must_not_include_violations("I am not a doctor", ["not a doctor"])
     assert v == ["not a doctor"]

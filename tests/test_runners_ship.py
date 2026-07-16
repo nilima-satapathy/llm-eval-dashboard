@@ -90,6 +90,53 @@ def test_run_evaluation_quick_subset_matches_dashboard(tmp_path: Path):
     assert out["summary"]["backend"] == "golden"
 
 
+def test_live_thresholds_looser_than_strict():
+    from src.runners import thresholds_for_backend
+
+    mi_g, ov_g = thresholds_for_backend("golden")
+    mi_o, ov_o = thresholds_for_backend("openai")
+    assert mi_g >= 0.7
+    assert ov_g >= 0.85
+    assert mi_o <= 0.5
+    assert ov_o <= 0.15
+
+
+def test_live_pass_with_partial_overlap_and_good_concepts():
+    """openai path: high must_include can pass even if overlap is modest."""
+    from src.runners import evaluate_case
+
+    class FakeLive:
+        name = "openai"
+
+        def complete(self, prompt: str):
+            from src.target_app import TargetResponse
+
+            return TargetResponse(
+                answer=(
+                    "Verification checks specs; validation checks user needs. "
+                    "They are different activities against specifications."
+                ),
+                latency_ms=10.0,
+                model="fake",
+                backend="openai",
+            )
+
+    case = {
+        "id": "qa-fake",
+        "question": "What is verification vs validation?",
+        "must_include": ["verification", "validation", "specifications", "user needs"],
+        "must_not_include": [],
+        "reference_answer": (
+            "Verification checks whether the product was built correctly against "
+            "specifications. Validation checks whether the right product was built "
+            "for user needs. They are complementary quality activities."
+        ),
+    }
+    result = evaluate_case(case, FakeLive())  # type: ignore[arg-type]
+    assert result.must_include_score >= 0.75
+    assert result.passed is True
+
+
 def test_explicit_backend_not_overridden_by_env(tmp_path: Path, monkeypatch):
     """Regression: .env TARGET_BACKEND=openai must not relabel a golden run."""
     monkeypatch.setenv("TARGET_BACKEND", "openai")

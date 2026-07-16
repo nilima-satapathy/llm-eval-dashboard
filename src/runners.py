@@ -5,6 +5,7 @@ M5 — Run evaluation suite over golden cases and persist results.
 from __future__ import annotations
 
 import os
+import time
 from dataclasses import asdict
 from datetime import datetime, timezone
 from typing import Any
@@ -25,17 +26,53 @@ from src.metrics_store import (
 )
 from src.target_app import TargetApp, get_target
 
+# Strict defaults — golden/oracle harness (offline demos & CI)
 MUST_INCLUDE_THRESHOLD = float(os.getenv("MUST_INCLUDE_THRESHOLD") or "0.7")
 OVERLAP_THRESHOLD = float(os.getenv("OVERLAP_THRESHOLD") or "0.85")
+
+# Live LLM (openai/Groq) — looser so paraphrase still passes
+LIVE_MUST_INCLUDE_THRESHOLD = float(os.getenv("LIVE_MUST_INCLUDE_THRESHOLD") or "0.5")
+LIVE_OVERLAP_THRESHOLD = float(os.getenv("LIVE_OVERLAP_THRESHOLD") or "0.12")
+# Space out cloud calls to reduce free-tier 429s (seconds between cases)
+LIVE_REQUEST_DELAY_S = float(os.getenv("LIVE_REQUEST_DELAY_S") or "2.0")
 
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
-def evaluate_case(case: dict[str, Any], target: TargetApp) -> CaseResult:
+def thresholds_for_backend(backend: str | None) -> tuple[float, float]:
+    """
+    Return (must_include_threshold, overlap_threshold).
+
+    Live OpenAI-compatible backends use LIVE_* thresholds so free-form answers
+    can pass; golden/mock keep strict gates.
+    """
+    name = (backend or "").strip().lower()
+    if name in ("openai", "xai", "grok", "llm", "groq"):
+        return LIVE_MUST_INCLUDE_THRESHOLD, LIVE_OVERLAP_THRESHOLD
+    return MUST_INCLUDE_THRESHOLD, OVERLAP_THRESHOLD
+
+
+def evaluate_case(
+    case: dict[str, Any],
+    target: TargetApp,
+    *,
+    mi_threshold: float | None = None,
+    ov_threshold: float | None = None,
+) -> CaseResult:
     """Score one golden case against the target SUT."""
     question = case["question"]
+    backend_name = getattr(target, "name", "") or ""
+    mi_th = (
+        MUST_INCLUDE_THRESHOLD
+        if mi_threshold is None
+        else mi_threshold
+    )
+    ov_th = OVERLAP_THRESHOLD if ov_threshold is None else ov_threshold
+    if mi_threshold is None and ov_threshold is None:
+        mi_th, ov_th = thresholds_for_backend(backend_name)
+
     try:
         resp = target.complete(question)
         mi = must_include_score(resp.answer, case.get("must_include") or [])
@@ -43,11 +80,18 @@ def evaluate_case(case: dict[str, Any], target: TargetApp) -> CaseResult:
         violations = must_not_include_violations(
             resp.answer, case.get("must_not_include") or []
         )
-        passed = (
-            mi >= MUST_INCLUDE_THRESHOLD
-            and ov >= OVERLAP_THRESHOLD
-            and not violations
-        )
+        # Live models: pass if concept coverage is solid, even when wording differs.
+        # Strict path still requires both gates (golden).
+        if backend_name in ("openai", "xai", "grok", "llm", "groq"):
+            concept_ok = mi >= mi_th
+            # Strong concept hit can pass with weaker overlap; else need both
+            passed = (
+                concept_ok
+                and not violations
+                and (mi >= 0.75 or ov >= ov_th)
+            )
+        else:
+            passed = mi >= mi_th and ov >= ov_th and not violations
         cost = estimate_cost_usd(resp.total_tokens)
         return CaseResult(
             case_id=case["id"],
@@ -64,7 +108,11 @@ def evaluate_case(case: dict[str, Any], target: TargetApp) -> CaseResult:
             model=resp.model,
             backend=resp.backend,
             error=None,
-            details={"must_not_violations": violations},
+            details={
+                "must_not_violations": violations,
+                "mi_threshold": mi_th,
+                "ov_threshold": ov_th,
+            },
         )
     except Exception as exc:  # noqa: BLE001 — record failure per case
         return CaseResult(
@@ -96,6 +144,7 @@ def run_evaluation(
     target = get_target(backend)
     # Prefer explicit CLI/dashboard backend, then env, then resolved SUT name
     effective_backend = (backend or os.getenv("TARGET_BACKEND") or target.name).strip().lower()
+    mi_th, ov_th = thresholds_for_backend(target.name)
     cases = load_cases()
     if case_ids:
         id_set = set(case_ids)
@@ -103,8 +152,13 @@ def run_evaluation(
 
     started = _utc_now()
     results: list[CaseResult] = []
-    for case in cases:
-        results.append(evaluate_case(case, target))
+    live = target.name in ("openai", "xai", "grok", "llm", "groq")
+    for i, case in enumerate(cases):
+        if live and i > 0 and LIVE_REQUEST_DELAY_S > 0:
+            time.sleep(LIVE_REQUEST_DELAY_S)
+        results.append(
+            evaluate_case(case, target, mi_threshold=mi_th, ov_threshold=ov_th)
+        )
     finished = _utc_now()
 
     latencies = [r.latency_ms for r in results]

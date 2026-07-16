@@ -239,9 +239,38 @@ def main() -> None:
     ]
     st.dataframe(res[table_cols], use_container_width=True, hide_index=True)
 
-    with st.expander("Raw answer preview (selected failed or first case)"):
-        preview = failed.iloc[0] if not failed.empty else res.iloc[0]
+    # Preview answer for any selected case (default: first failure if any)
+    res_by_id = res.set_index("case_id", drop=False)
+    case_ids = list(res["case_id"])
+    failed_ids = list(failed["case_id"]) if not failed.empty else []
+    # Put failures first so they’re easy to pick
+    ordered_ids = failed_ids + [c for c in case_ids if c not in failed_ids]
+    status = {
+        cid: ("FAIL" if cid in failed_ids else "PASS") for cid in ordered_ids
+    }
+    preview_id = st.selectbox(
+        "Preview case answer",
+        options=ordered_ids,
+        format_func=lambda cid: f"{cid} · {status.get(cid, '?')}",
+        help="Choose any case to inspect the full model answer.",
+    )
+    row = res_by_id.loc[preview_id]
+    if getattr(row, "ndim", 1) > 1:
+        row = row.iloc[0]
+    preview = row.to_dict() if hasattr(row, "to_dict") else dict(row)
+
+    with st.expander("Raw answer preview", expanded=True):
         st.write(f"**{preview['case_id']}** — {preview['question']}")
+        s1, s2, s3 = st.columns(3)
+        s1.metric("must_include", f"{float(preview['must_include_score']):.2f}")
+        s2.metric("overlap", f"{float(preview['reference_overlap_score']):.2f}")
+        s3.metric(
+            "Result",
+            "PASS" if int(preview["passed"]) == 1 else "FAIL",
+        )
+        err = preview.get("error")
+        if err is not None and str(err) not in ("", "None", "nan"):
+            st.error(f"Error: {err}")
         st.text(preview.get("answer") or "(empty)")
 
     st.divider()

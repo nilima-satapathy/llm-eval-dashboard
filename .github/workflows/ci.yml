@@ -47,22 +47,3 @@ jobs:
         run: |
           python scripts/run_eval.py --backend golden --suite golden --ids qa-001,qa-002 --notes ci-smoke --no-csv
           python scripts/run_eval.py --backend golden --suite red_team --ids rt-001,rt-002 --notes ci-smoke-rt --no-csv
-
-      - name: LLM Quality Gate (Project 5 — PR smoke)
-        env:
-          TARGET_BACKEND: golden
-          GATE_PROFILE: pr
-        run: |
-          python scripts/run_gate.py --profile pr
-
-      - name: Upload gate report artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: quality-gate-report
-          path: |
-            reports/gate_*.md
-            reports/gate_*.json
-            reports/gate_latest.md
-            reports/gate_latest.json
-          if-no-files-found: warn

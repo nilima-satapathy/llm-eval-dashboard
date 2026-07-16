@@ -15,5 +15,4 @@ data/
 .idea/
 .vscode/
 streamlit_secrets.toml
-gate/baseline.json
 demo/

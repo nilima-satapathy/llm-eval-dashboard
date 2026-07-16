@@ -9,7 +9,7 @@
 A Pytest + DeepEval suite over a **golden dataset**, with latency/cost logging, a Streamlit dashboard, red-team cases, and CI smoke runs.  
 Target system: a **software testing assistant** (mock offline, or live LLM via OpenAI-compatible API).
 
-## Local path (not OneDrive)
+## Local path 
 
 ```
 C:\Users\admin\Code\llm-eval-dashboard

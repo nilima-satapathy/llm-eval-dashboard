@@ -23,9 +23,10 @@ cd C:\Users\admin\Code\llm-eval-dashboard
 pip install -r requirements.txt
 set TARGET_BACKEND=golden
 python scripts/run_eval.py
-streamlit run dashboard/app.py
+python -m streamlit run dashboard/app.py
 ```
 
+On Windows use `python -m streamlit` (avoids broken `streamlit.exe` shim).  
 Opens a local browser (typically http://localhost:8501).
 
 ## Screenshot-worthy line

@@ -94,6 +94,8 @@ def run_evaluation(
     Returns summary dict including run_id and paths.
     """
     target = get_target(backend)
+    # Prefer explicit CLI/dashboard backend, then env, then resolved SUT name
+    effective_backend = (backend or os.getenv("TARGET_BACKEND") or target.name).strip().lower()
     cases = load_cases()
     if case_ids:
         id_set = set(case_ids)
@@ -122,7 +124,7 @@ def run_evaluation(
         run_id=new_run_id(),
         started_at=started,
         finished_at=finished,
-        backend=os.getenv("TARGET_BACKEND") or backend or target.name,
+        backend=target.name if target.name else effective_backend,
         model=model_label,
         total_cases=len(results),
         passed=passed,

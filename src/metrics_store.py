@@ -240,6 +240,86 @@ class MetricsStore:
             "older_avg_latency_ms": older["avg_latency_ms"],
         }
 
+    def usage_for_backend(
+        self,
+        *,
+        backend: str = "openai",
+        since_iso: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Aggregate API usage for free-tier dashboards.
+
+        Counts per-case rows (1 request ≈ 1 case) for the given backend,
+        optionally since an ISO timestamp (compared to results via parent run).
+        """
+        with self._conn() as conn:
+            if since_iso:
+                row = conn.execute(
+                    """
+                    SELECT
+                        COUNT(*) AS requests,
+                        COALESCE(SUM(r.total_tokens), 0) AS tokens,
+                        COUNT(DISTINCT r.run_id) AS runs,
+                        COALESCE(SUM(r.estimated_cost_usd), 0) AS estimated_cost_usd
+                    FROM results r
+                    JOIN runs u ON u.run_id = r.run_id
+                    WHERE LOWER(COALESCE(r.backend, u.backend, '')) = LOWER(?)
+                      AND u.finished_at >= ?
+                    """,
+                    (backend, since_iso),
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    """
+                    SELECT
+                        COUNT(*) AS requests,
+                        COALESCE(SUM(r.total_tokens), 0) AS tokens,
+                        COUNT(DISTINCT r.run_id) AS runs,
+                        COALESCE(SUM(r.estimated_cost_usd), 0) AS estimated_cost_usd
+                    FROM results r
+                    JOIN runs u ON u.run_id = r.run_id
+                    WHERE LOWER(COALESCE(r.backend, u.backend, '')) = LOWER(?)
+                    """,
+                    (backend,),
+                ).fetchone()
+            return {
+                "backend": backend,
+                "since_iso": since_iso,
+                "requests": int(row["requests"] or 0),
+                "tokens": int(row["tokens"] or 0),
+                "runs": int(row["runs"] or 0),
+                "estimated_cost_usd": float(row["estimated_cost_usd"] or 0.0),
+            }
+
+    def avg_tokens_per_case(
+        self,
+        *,
+        backend: str = "openai",
+        limit_runs: int = 10,
+    ) -> float | None:
+        """Mean total_tokens per case over recent openai runs (for capacity estimates)."""
+        with self._conn() as conn:
+            row = conn.execute(
+                """
+                SELECT AVG(r.total_tokens) AS avg_tok
+                FROM results r
+                JOIN runs u ON u.run_id = r.run_id
+                WHERE LOWER(COALESCE(r.backend, u.backend, '')) = LOWER(?)
+                  AND r.total_tokens IS NOT NULL
+                  AND r.total_tokens > 0
+                  AND u.run_id IN (
+                      SELECT run_id FROM runs
+                      WHERE LOWER(backend) = LOWER(?)
+                      ORDER BY finished_at DESC
+                      LIMIT ?
+                  )
+                """,
+                (backend, backend, limit_runs),
+            ).fetchone()
+            if row is None or row["avg_tok"] is None:
+                return None
+            return round(float(row["avg_tok"]), 1)
+
     def export_run_csv(
         self,
         run_id: str,

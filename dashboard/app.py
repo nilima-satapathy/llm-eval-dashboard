@@ -2,7 +2,9 @@
 M6 — Streamlit dashboard over eval runs stored in SQLite.
 
 Run from repo root:
-  streamlit run dashboard/app.py
+  python -m streamlit run dashboard/app.py
+
+(On Windows, avoid bare `streamlit run` — the .exe shim often fails.)
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.free_quota import build_quota_snapshot  # noqa: E402
 from src.metrics_store import DEFAULT_DB, MetricsStore  # noqa: E402
 from src.runners import run_evaluation  # noqa: E402
 
@@ -49,6 +52,24 @@ def results_df(store: MetricsStore, run_id: str) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def render_free_tokens_bar(store: MetricsStore) -> None:
+    """Sidebar: daily free cloud quota (full bar = budget left today)."""
+    snap = build_quota_snapshot(store)
+    cfg = snap["config"]
+    remaining = max(0, snap["advice"].remaining_tokens_today)
+    limit = max(1, cfg.daily_tokens)
+    frac_left = min(1.0, remaining / limit)
+    st.caption("Free cloud quota (today)")
+    st.progress(
+        frac_left,
+        text=f"{remaining:,} / {limit:,} tokens left · resets daily",
+    )
+    if remaining <= 0:
+        st.caption("Quota empty — use **golden** / **mock** until tomorrow.")
+    elif frac_left < 0.1:
+        st.caption("Almost empty — prefer **golden** / **mock** or Quick run.")
+
+
 def main() -> None:
     st.title("LLM Evaluation Dashboard")
     st.caption(
@@ -60,7 +81,6 @@ def main() -> None:
 
     with st.sidebar:
         st.header("Controls")
-        st.write(f"**DB:** `{DEFAULT_DB}`")
         backend = st.selectbox(
             "Run backend",
             options=["golden", "mock", "openai"],
@@ -68,6 +88,9 @@ def main() -> None:
             help="golden = offline reference answers; openai needs API keys",
         )
         run_subset = st.checkbox("Quick run (4 seed cases only)", value=False)
+
+        render_free_tokens_bar(store)
+
         if st.button("▶ Run evaluation now", type="primary"):
             with st.spinner("Running evaluation…"):
                 ids = (
@@ -93,15 +116,7 @@ def main() -> None:
             st.rerun()
 
         st.divider()
-        st.markdown(
-            """
-**Metrics (offline)**  
-- must_include ≥ 0.70  
-- reference_overlap ≥ 0.85  
-
-**Tip:** Use `golden` for demos without API cost.
-            """
-        )
+        st.caption("must_include ≥ 0.70 · reference_overlap ≥ 0.85")
 
     df_runs = runs_df(store)
     if df_runs.empty:

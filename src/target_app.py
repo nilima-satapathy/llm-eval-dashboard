@@ -171,6 +171,8 @@ class OpenAICompatibleTarget:
             or os.getenv("GROQ_API_KEY")
             or ("ollama" if "11434" in self.base_url else "")
         )
+        if self.api_key:
+            self.api_key = self.api_key.strip()
         if not self.api_key:
             raise ValueError(
                 "API key required for openai backend (OPENAI_API_KEY / XAI_API_KEY / GROQ_API_KEY). "

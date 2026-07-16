@@ -1,4 +1,8 @@
-"""Pytest fixtures for LLM eval suite."""
+"""Pytest fixtures for LLM eval suite.
+
+Offline tests always use the golden SUT so a developer's .env
+(TARGET_BACKEND=openai / Groq) cannot pollute CI or local pytest.
+"""
 
 from __future__ import annotations
 
@@ -12,6 +16,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+# Isolate offline suite from project .env live-backend settings
+os.environ["TARGET_BACKEND"] = "golden"
+
 from src.dataset import load_cases  # noqa: E402
 from src.target_app import get_target  # noqa: E402
 
@@ -23,7 +30,7 @@ def golden_cases():
 
 @pytest.fixture(scope="session")
 def seed_case_ids():
-    """Legacy small subset; M4 tests parametrize the full set."""
+    """Quick-run subset used by the dashboard."""
     return ["qa-001", "qa-002", "qa-004", "qa-007"]
 
 
@@ -35,9 +42,9 @@ def all_case_ids(golden_cases):
 @pytest.fixture(scope="session")
 def target():
     """
-    Default SUT for offline tests: golden reference answers.
+    Offline SUT: golden reference answers.
 
-    Override with TARGET_BACKEND=openai for real model eval.
+    Live API eval is not part of the default pytest target fixture.
+    Use scripts/run_eval.py --backend openai for real model runs.
     """
-    backend = os.getenv("TARGET_BACKEND", "golden")
-    return get_target(backend)
+    return get_target("golden")

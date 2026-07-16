@@ -87,6 +87,25 @@ In the sidebar choose **openai** (it will hit Ollama via the base URL).
 
 ---
 
+## Free-tier usage on the dashboard
+
+The Streamlit app shows **Free tier usage** (requests & tokens today vs budget) so you can decide whether to run **openai**, **Quick run (4 cases)**, or stay on **golden**.
+
+- Counted only from **this project's** stored `openai` runs (SQLite), not your whole Groq account
+- Defaults match Groq free tier for `llama-3.1-8b-instant` (override in `.env`):
+
+```env
+FREE_TIER_PROVIDER=groq
+FREE_TIER_DAILY_REQUESTS=14400
+FREE_TIER_DAILY_TOKENS=500000
+FREE_TIER_RPM=30
+FREE_TIER_TPM=6000
+```
+
+Status colors: green under 70% · yellow at 70%+ · red at 90%+ of the higher of request/token daily use.
+
+---
+
 ## Option C — Free cloud API tiers (internet required)
 
 These often have **free monthly quotas** (limits change — check each site):

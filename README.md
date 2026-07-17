@@ -4,9 +4,7 @@
 
 **Portfolio project — AI Test Engineer / GenAI quality**  
 **Owner:** [Nilima Satapathy](https://github.com/nilima-satapathy)  
-**Status:** M1–M8 complete  
-
-**Project 5 (separate repo):** [llm-quality-gate](https://github.com/nilima-satapathy/llm-quality-gate) — CI release quality gate built on this harness.
+**Status:** M1–M8 complete
 
 Golden-set + red-team evaluation harness for a **software testing assistant**, with offline metrics, run storage, and a Streamlit dashboard. Optional live model via any **OpenAI-compatible API** (e.g. Groq free tier).
 
@@ -24,7 +22,6 @@ Most demos show a chatbot. This project shows **how you measure one**:
 | Red-team / policy | 12 adversarial cases (jailbreak, secrets, off-scope, injection) |
 | Observability | Latency, tokens, rough cost, free-tier quota bar |
 | Engineering hygiene | Pytest suite, GitHub Actions CI, SQLite + CSV history |
-| **Release gate (P5)** | Separate repo: [llm-quality-gate](https://github.com/nilima-satapathy/llm-quality-gate) |
 
 ---
 
@@ -183,14 +180,6 @@ llm-eval-dashboard/
 
 ---
 
-## Project 5 — Quality gate (separate repo)
-
-Release **quality gate** that fails CI when eval policy regresses lives in:
-
-**https://github.com/nilima-satapathy/llm-quality-gate**
-
-It depends on this harness for golden/red-team cases and `run_evaluation`.
-
 ## CI
 
 On every push/PR to `master`/`main`:
@@ -210,8 +199,6 @@ No API keys required in CI.
 > “Golden proves the pipeline offline; live Groq shows real model gaps; red-team checks policy boundaries.”
 
 > “Results land in SQLite and Streamlit so I can compare runs, inspect failures, and watch free-tier quota.”
-
-> “Project 5 (llm-quality-gate) turns this harness into a **release gate** — PR CI fails when thresholds drop.”
 
 ---
 
